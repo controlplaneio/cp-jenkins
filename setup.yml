@@ -2,7 +2,7 @@
 # Variables that need to be defined are shown in this format: {{variable_name}}
 
 admin:
-  username: &admin_user sirjenkins
+  username: &admin_user sublimino
   password: password
   email: &admin_email jenkins@control-plane.io
 
@@ -36,6 +36,10 @@ mailer:
 
 jnlp_port: 5000
 
+set_master_kill_switch: true
+web_port: 8080
+web_proto: http
+
 seed_jobdsl: |
   freeStyleJob('maintenance-apply-dsl') {
       displayName('apply-dsl')
@@ -44,7 +48,7 @@ seed_jobdsl: |
       checkoutRetryCount(3)
 
       properties {
-          githubProjectUrl('https://github.com/jessfraz/jenkins-dsl')
+          githubProjectUrl('https://github.com/sublimino/jenkins-dsl')
       }
 
       logRotator {
@@ -55,7 +59,7 @@ seed_jobdsl: |
       scm {
           git {
               remote {
-                  url('https://github.com/jessfraz/jenkins-dsl.git')
+                  url('https://github.com/sublimino/jenkins-dsl.git')
               }
               branches('*/master')
               extensions {
@@ -94,7 +98,3 @@ seed_jobdsl: |
           wsCleanup()
       }
   }
-
-set_master_kill_switch: true
-web_port: 8080
-web_proto: http

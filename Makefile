@@ -37,12 +37,14 @@ build: ## builds a docker image
 run: ## runs the last build docker image
 	@echo "+ $@"
 	$(eval TMP_DIR = $(shell mktemp -d --suffix -jenkins-test))
+	pwd
 	docker run \
 		-d \
 		--rm \
 		-p 8080:8080 \
 		-p 50000:50000 \
 		-v "$(TMP_DIR)":/var/jenkins_home \
+		-v "$(shell pwd)/setup.yml":/usr/share/jenkins/setup.yml \
 		"${CONTAINER_NAME}"
 
 .PHONY: help

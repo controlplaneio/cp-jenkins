@@ -105,3 +105,6 @@ workflow-step-api:latest
 workflow-support:latest
 ws-cleanup:latest
 sidebar-link:latest
+naginator:latest
+heavy-job:latest
+view-job-filters:latest
