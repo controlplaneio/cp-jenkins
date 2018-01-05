@@ -3,6 +3,7 @@ FROM jenkins/jenkins:lts
 ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false -Dhudson.footerURL=https://control-plane.io" \
     JENKINS_CONFIG_HOME="/usr/share/jenkins" \
     TRY_UPGRADE_IF_NO_MARKER=true
+
 RUN echo 2.0 > /usr/share/jenkins/ref/jenkins.install.UpgradeWizard.state
 
 USER root

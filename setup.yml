@@ -12,10 +12,10 @@ credentials:
         username: sublimino
         password: password
         id: github-api-sublimino
-        description: some-description
+        description: "Added during bootstrap"
 
 executors:
-  master: 3
+  master: 5
 
 git:
   config:
@@ -37,8 +37,8 @@ mailer:
 jnlp_port: 5000
 
 set_master_kill_switch: true
-web_port: 8080
-web_proto: http
+web_port: 8080    # TODO(ajm) change to 443
+web_proto: http   # TODO(ajm) change to https
 
 seed_jobdsl: |
   freeStyleJob('maintenance-apply-dsl') {

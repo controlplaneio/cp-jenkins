@@ -16,12 +16,11 @@ Logger logger = Logger.getLogger('seed.groovy')
 Thread.start {
     WORKSPACE_BASE = "${env['JENKINS_HOME']}/workspace"
     def workspace = new File("${WORKSPACE_BASE}")
-    // workspace.mkdirs()
-    // def seedJobDsl = new File("${WORKSPACE_BASE}/seed.groovy")
+
     def seedJobDsl = config.seed_jobdsl
     logger.info(seedJobDsl)
 
     def jobManagement = new JenkinsJobManagement(System.out, [:], workspace)
     new DslScriptLoader(jobManagement).runScript(seedJobDsl)
-    logger.info('Created first job')
+    logger.info('Created seed job')
 }

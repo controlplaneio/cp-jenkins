@@ -8,25 +8,20 @@ BUILD_DATE := $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 GIT_MESSAGE := $(shell git -c log.showSignature=false log --max-count=1 --pretty=format:"%H")
 GIT_SHA := $(shell git log -1 --format=%h)
 GIT_TAG ?= $(shell bash -c 'TAG=$$(git tag | tail -n1); echo "$${TAG:-none}"')
-GITUNTRACKEDCHANGES := $(shell git status --porcelain --untracked-files=no)
-ifneq ($(GITUNTRACKEDCHANGES),)
+
+GIT_UNTRACKED_CHANGES := $(shell git status --porcelain --untracked-files=no)
+ifneq ($(GIT_UNTRACKED_CHANGES),)
 	GITCOMMIT := $(GITCOMMIT)-dirty
 endif
-
-# golang buildtime, more at https://github.com/jessfraz/pepper/blob/master/Makefile
-CTIMEVAR=-X $(PKG)/version.GITCOMMIT=$(GITCOMMIT) -X $(PKG)/version.VERSION=$(VERSION)
-GO_LDFLAGS=-ldflags "-w $(CTIMEVAR)"
-GO_LDFLAGS_STATIC=-ldflags "-w $(CTIMEVAR) -extldflags -static"
 
 CONTAINER_TAG ?= $(GIT_TAG)
 CONTAINER_NAME := $(REGISTRY)/$(NAME):$(CONTAINER_TAG)
 
 export NAME REGISTRY BUILD_DATE GIT_MESSAGE GIT_SHA GIT_TAG CONTAINER_TAG CONTAINER_NAME
 
-.PHONY: all test
-.SILENT:
 
-all:
+.PHONY: all
+all: build run
 
 .PHONY: build
 build: ## builds a docker image
@@ -43,6 +38,7 @@ run: ## runs the last build docker image
 		--rm \
 		-p 8080:8080 \
 		-p 50000:50000 \
+		-v "$${HOME}.ssh/id_rsa:/var/jenkins_home/.ssh/" \
 		-v "$(TMP_DIR)":/var/jenkins_home \
 		-v "$(shell pwd)/setup.yml":/usr/share/jenkins/setup.yml \
 		"${CONTAINER_NAME}"

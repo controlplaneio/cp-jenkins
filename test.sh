@@ -42,19 +42,21 @@ main() {
 
   trap cleanup EXIT
 
-  make build
+  build_jenkins
+
+  info "Starting Jenkins..."
 
   start_jenkins
 
-  #  get_jenkins_root_password
-
-  wait_until_started
-
-  add_seed_job
+  wait_until_initialised
 
   cat
 
   success "Done"
+}
+
+build_jenkins() {
+  make build
 }
 
 start_jenkins() {
@@ -65,28 +67,13 @@ cleanup() {
   docker ps -qf "id=${CONTAINER_ID}" | xargs --no-run-if-empty docker kill
 }
 
-wait_until_started() {
+wait_until_initialised() {
   local RESULT=""
   while [[ "${RESULT}" == "" ]]; do
-    RESULT=$(docker logs "${CONTAINER_ID}" |& grep 'setting agent port for jnlp... done') || true
+    RESULT=$(docker logs "${CONTAINER_ID}" |& grep -E 'Completed initialization') || true
     printf '.'
     sleep 1
   done
-}
-
-get_jenkins_root_password() {
-  local PASSWORD=""
-  while [[ "${PASSWORD}" == "" ]]; do
-    PASSWORD=$(docker exec -it "${CONTAINER_ID}" \
-      bash -c "cat /var/jenkins_home/secrets/initialAdminPassword 2>/dev/null") || true
-    printf '.'
-    sleep 1
-  done
-  echo "${PASSWORD}"
-}
-
-add_seed_job() {
-  :
 }
 
 handle_arguments() {
