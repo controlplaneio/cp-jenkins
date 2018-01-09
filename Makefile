@@ -28,8 +28,8 @@ build: ## builds a docker image
 	@echo "+ $@"
 	docker build --tag "${CONTAINER_NAME}" .
 
-.PHONY: run
-run: ## runs the last build docker image
+.PHONY: test-run
+run: ## runs the last built docker image, but doesn't remember your data
 	@echo "+ $@"
 	$(eval TMP_DIR = $(shell mktemp -d --suffix -jenkins-test))
 	pwd
@@ -41,6 +41,22 @@ run: ## runs the last build docker image
 		-v "$${HOME}.ssh/id_rsa:/var/jenkins_home/.ssh/" \
 		-v "$(TMP_DIR)":/var/jenkins_home \
 		-v "$(shell pwd)/setup.yml":/usr/share/jenkins/setup.yml \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		"${CONTAINER_NAME}"
+
+.PHONY: run
+run: ## runs the last built docker image, remembering your data
+	@echo "+ $@"
+	pwd
+	docker run \
+		-d \
+		--rm \
+		-p 8080:8080 \
+		-p 50000:50000 \
+		-v "$${HOME}.ssh/id_rsa:/var/jenkins_home/.ssh/" \
+		-v "$(JENKINS_HOME_MOUNT_DIR)":/var/jenkins_home \
+		-v "$(shell pwd)/setup.yml":/usr/share/jenkins/setup.yml \
+		-v /var/run/docker.sock:/var/run/docker.sock \
 		"${CONTAINER_NAME}"
 
 .PHONY: help
