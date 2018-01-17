@@ -17,6 +17,8 @@ endif
 CONTAINER_TAG ?= $(GIT_TAG)
 CONTAINER_NAME := $(REGISTRY)/$(NAME):$(CONTAINER_TAG)
 
+JENKINS_HOME_MOUNT_DIR := /opt/jenkins_home/
+
 export NAME REGISTRY BUILD_DATE GIT_MESSAGE GIT_SHA GIT_TAG CONTAINER_TAG CONTAINER_NAME
 
 
@@ -29,7 +31,7 @@ build: ## builds a docker image
 	docker build --tag "${CONTAINER_NAME}" .
 
 .PHONY: test-run
-run: ## runs the last built docker image, but doesn't remember your data
+test-run: ## runs the last built docker image with ephemeral storage
 	@echo "+ $@"
 	$(eval TMP_DIR = $(shell mktemp -d --suffix -jenkins-test))
 	pwd
@@ -45,11 +47,11 @@ run: ## runs the last built docker image, but doesn't remember your data
 		"${CONTAINER_NAME}"
 
 .PHONY: run
-run: ## runs the last built docker image, remembering your data
+run: ## runs the last built docker image with persistent storage
 	@echo "+ $@"
 	pwd
+	mkdir -p $(JENKINS_HOME_MOUNT_DIR)
 	docker run \
-		-d \
 		--rm \
 		-p 8080:8080 \
 		-p 50000:50000 \
