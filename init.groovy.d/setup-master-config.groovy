@@ -107,17 +107,15 @@ Thread.start {
     logger.info('FIRST RUN - configuring auth')
 
     // setup seed job
-    Thread.start {
-      WORKSPACE_BASE = "${env['JENKINS_HOME']}/workspace"
-      def workspace = new File("${WORKSPACE_BASE}")
+    WORKSPACE_BASE = "${env['JENKINS_HOME']}/workspace"
+    def workspace = new File("${WORKSPACE_BASE}")
 
-      def seedJobDsl = config.seed_jobdsl
-      logger.info(seedJobDsl)
+    def seedJobDsl = config.seed_jobdsl
+    logger.info(seedJobDsl)
 
-      def jobManagement = new JenkinsJobManagement(System.out, [:], workspace)
-      new DslScriptLoader(jobManagement).runScript(seedJobDsl)
-      logger.info('Created seed job')
-    }
+    def jobManagement = new JenkinsJobManagement(System.out, [:], workspace)
+    new DslScriptLoader(jobManagement).runScript(seedJobDsl)
+    logger.info('Created seed job')
 
     sleep 1000
 

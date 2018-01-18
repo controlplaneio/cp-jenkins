@@ -1,6 +1,6 @@
-FROM jenkins/jenkins:lts
+FROM jenkins/jenkins:2.89.3
 
-ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false -Dhudson.footerURL=https://control-plane.io" \
+ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false -Dhudson.footerURL=https://control-plane.io  -Djava.util.logging=DEBUG" \
     JENKINS_CONFIG_HOME="/usr/share/jenkins" \
     TRY_UPGRADE_IF_NO_MARKER=true
 
@@ -37,5 +37,7 @@ RUN \
 COPY init.groovy.d /usr/share/jenkins/ref/init.groovy.d/
 
 # entrypoint is used to update docker gid and revert back to jenkins user
+COPY known_hosts /root/.ssh/known_hosts
+
 COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]

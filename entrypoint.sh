@@ -17,5 +17,11 @@ if ! groups jenkins | grep -q docker; then
   usermod -aG docker jenkins
 fi
 
+mkdir -p "${JENKINS_HOME}"/.ssh/
+cp /root/.ssh/known_hosts "${JENKINS_HOME}"/.ssh/ -a
+
+sed -E '1s,(.*)[[:space:]]*$,\1x,g' -i /usr/local/bin/jenkins.sh
+
 # drop access to jenkins user and run jenkins entrypoint
-exec su jenkins -c /usr/local/bin/jenkins.sh "$@"
+# exec su jenkins -c /usr/local/bin/jenkins.sh "$@"
+/usr/local/bin/jenkins.sh "$@"
