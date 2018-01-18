@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 
-set -x
+set -euxo pipefail
 
 # get gid of docker socket file
 SOCK_DOCKER_GID=$(ls -ng /var/run/docker.sock | cut -f3 -d' ')
@@ -18,10 +18,10 @@ if ! groups jenkins | grep -q docker; then
 fi
 
 mkdir -p "${JENKINS_HOME}"/.ssh/
-cp /root/.ssh/known_hosts "${JENKINS_HOME}"/.ssh/ -a
+cp /opt/known_hosts "${JENKINS_HOME}"/.ssh/ -a
+chown jenkins:jenkins "${JENKINS_HOME}"/.ssh -R
 
 sed -E '1s,(.*)[[:space:]]*$,\1x,g' -i /usr/local/bin/jenkins.sh
 
 # drop access to jenkins user and run jenkins entrypoint
-# exec su jenkins -c /usr/local/bin/jenkins.sh "$@"
-/usr/local/bin/jenkins.sh "$@"
+exec gosu jenkins /bin/tini -- /usr/local/bin/jenkins.sh "$@"

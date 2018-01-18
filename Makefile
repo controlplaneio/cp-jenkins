@@ -40,9 +40,9 @@ test-run: ## runs the last built docker image with ephemeral storage
 		--rm \
 		-p 8080:8080 \
 		-p 50000:50000 \
-		-v "$${HOME}.ssh/id_rsa:/var/jenkins_home/.ssh/" \
-		-v "$(TMP_DIR)":/var/jenkins_home \
 		-v "$(shell pwd)/setup.yml":/usr/share/jenkins/setup.yml \
+		-v "$(TMP_DIR)":/var/jenkins_home \
+		-v "$${HOME}/.ssh/id_rsa:/var/jenkins_home/.ssh/" \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		"${CONTAINER_NAME}"
 
@@ -53,11 +53,12 @@ run: ## runs the last built docker image with persistent storage
 	mkdir -p $(JENKINS_HOME_MOUNT_DIR)
 	docker run \
 		--rm \
+		--group-add docker \
 		-p 8080:8080 \
 		-p 50000:50000 \
-		-v "$${HOME}.ssh/id_rsa:/var/jenkins_home/.ssh/" \
-		-v "$(JENKINS_HOME_MOUNT_DIR)":/var/jenkins_home \
 		-v "$(shell pwd)/setup.yml":/usr/share/jenkins/setup.yml \
+		-v "$(JENKINS_HOME_MOUNT_DIR)":/var/jenkins_home \
+		-v "$${HOME}/.ssh/id_rsa:/var/jenkins_home/.ssh/" \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		"${CONTAINER_NAME}"
 

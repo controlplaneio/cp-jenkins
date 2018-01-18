@@ -158,7 +158,7 @@ Thread.start {
         )
 
         credentials_store.addCredentials(Domain.global(), credentials)
-        logger.info('Configured SSH Credentials from ${JENKINS_SSH_KEY}')
+        logger.info('Configured SSH Credentials from ${JENKINS_SSH_KEY} for ${globalConfigName}')
       }
     }
 

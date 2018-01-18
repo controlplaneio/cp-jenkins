@@ -36,8 +36,22 @@ RUN \
 
 COPY init.groovy.d /usr/share/jenkins/ref/init.groovy.d/
 
-# entrypoint is used to update docker gid and revert back to jenkins user
-COPY known_hosts /root/.ssh/known_hosts
+COPY known_hosts /opt/known_hosts
+RUN \
+  mkdir -p "${JENKINS_HOME}/.ssh/" \
+  && cp /opt/known_hosts "${JENKINS_HOME}/.ssh/" \
+  && chown jenkins:jenkins "${JENKINS_HOME}" -R
+
+ARG GOSU_VERSION=1.10
+RUN \
+  dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')" \
+  && wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch" \
+ && chmod +x /usr/local/bin/gosu \
+ && gosu nobody true
+
+ENV TINI_VERSION v0.16.1
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /bin/tini
+RUN chmod +x /bin/tini
 
 COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
