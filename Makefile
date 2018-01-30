@@ -34,15 +34,15 @@ build: ## builds a docker image
 test-run: ## runs the last built docker image with ephemeral storage
 	@echo "+ $@"
 	$(eval TMP_DIR = $(shell mktemp -d --suffix -jenkins-test))
+	mkdir -p $(TMP_DIR)/.ssh/
 	pwd
 	docker run \
-		-d \
 		--rm \
 		-p 8080:8080 \
 		-p 50000:50000 \
 		-v "$(shell pwd)/setup.yml":/usr/share/jenkins/setup.yml \
 		-v "$(TMP_DIR)":/var/jenkins_home \
-		-v "$${HOME}/.ssh/id_rsa:/var/jenkins_home/.ssh/" \
+		-v "$${HOME}/.ssh/id_rsa:/opt/id_rsa" \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		"${CONTAINER_NAME}"
 
@@ -58,7 +58,7 @@ run: ## runs the last built docker image with persistent storage
 		-p 50000:50000 \
 		-v "$(shell pwd)/setup.yml":/usr/share/jenkins/setup.yml \
 		-v "$(JENKINS_HOME_MOUNT_DIR)":/var/jenkins_home \
-		-v "$${HOME}/.ssh/id_rsa:/var/jenkins_home/.ssh/" \
+		-v "$${HOME}/.ssh/id_rsa:/opt/id_rsa" \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		"${CONTAINER_NAME}"
 

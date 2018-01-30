@@ -38,7 +38,7 @@ COPY init.groovy.d /usr/share/jenkins/ref/init.groovy.d/
 
 COPY known_hosts /opt/known_hosts
 RUN \
-  mkdir -p "${JENKINS_HOME}/.ssh/" \
+  mkdir -p "${JENKINS_HOME}/.ssh/" || true \
   && cp /opt/known_hosts "${JENKINS_HOME}/.ssh/" \
   && chown jenkins:jenkins "${JENKINS_HOME}" -R
 
@@ -50,8 +50,10 @@ RUN \
  && gosu nobody true
 
 ENV TINI_VERSION v0.16.1
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /bin/tini
-RUN chmod +x /bin/tini
+RUN \
+  dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')" \
+  && wget -O /usr/local/bin/tini "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-$dpkgArch" \
+  && chmod +x /usr/local/bin/tini
 
 COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]

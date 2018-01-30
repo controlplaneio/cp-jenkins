@@ -59,7 +59,7 @@ seed_jobdsl: |
       scm {
           git {
               remote {
-                  url('https://github.com/sublimino/jenkins-dsl.git')
+                  url('git@github.com:sublimino/jenkins-dsl.git')
               }
               branches('*/master')
               extensions {
