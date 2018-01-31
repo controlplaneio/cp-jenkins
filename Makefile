@@ -33,16 +33,19 @@ build: ## builds a docker image
 .PHONY: test-run
 test-run: ## runs the last built docker image with ephemeral storage
 	@echo "+ $@"
+	pwd
 	$(eval TMP_DIR = $(shell mktemp -d --suffix -jenkins-test))
 	mkdir -p $(TMP_DIR)/.ssh/
-	pwd
+	cp $${HOME}/.ssh/{id_rsa,known_hosts} $(TMP_DIR)/.ssh/
+	chown $${USER}:$${USER} $(TMP_DIR) -R
 	docker run \
 		--rm \
+		--group-add docker \
 		-p 8080:8080 \
 		-p 50000:50000 \
 		-v "$(shell pwd)/setup.yml":/usr/share/jenkins/setup.yml \
+		-v "$(shell pwd)/setup-secret.yml":/usr/share/jenkins/setup-secret.yml \
 		-v "$(TMP_DIR)":/var/jenkins_home \
-		-v "$${HOME}/.ssh/id_rsa:/opt/id_rsa" \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		"${CONTAINER_NAME}"
 
@@ -50,17 +53,23 @@ test-run: ## runs the last built docker image with ephemeral storage
 run: ## runs the last built docker image with persistent storage
 	@echo "+ $@"
 	pwd
-	mkdir -p $(JENKINS_HOME_MOUNT_DIR)
+	mkdir -p $(JENKINS_HOME_MOUNT_DIR)/.ssh/
+	cp $${HOME}/.ssh/{id_rsa,known_hosts} $(JENKINS_HOME_MOUNT_DIR)/.ssh/
+	chown $${USER}:$${USER} $(JENKINS_HOME_MOUNT_DIR) -R
 	docker run \
 		--rm \
 		--group-add docker \
 		-p 8080:8080 \
 		-p 50000:50000 \
 		-v "$(shell pwd)/setup.yml":/usr/share/jenkins/setup.yml \
+		-v "$(shell pwd)/setup-secret.yml":/usr/share/jenkins/setup-secret.yml \
 		-v "$(JENKINS_HOME_MOUNT_DIR)":/var/jenkins_home \
-		-v "$${HOME}/.ssh/id_rsa:/opt/id_rsa" \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		"${CONTAINER_NAME}"
+
+.PHONY: clean
+clean: ## remove temporary files from test-run
+	sudo rm /tmp/user/1000/tmp.*jenkins-test -rf
 
 .PHONY: help
 help: ## parse jobs and descriptions from this Makefile

@@ -17,17 +17,6 @@ if ! groups jenkins | grep -q docker; then
   usermod -aG docker jenkins
 fi
 
-mkdir -p "${JENKINS_HOME}"/.ssh/ || true
-if [[ -f /opt/known_hosts ]]; then
-  cp /opt/known_hosts "${JENKINS_HOME}"/.ssh/ -a
-fi
-if [[ -f /opt/id_rsa ]]; then
-  cp /opt/id_rsa "${JENKINS_HOME}"/.ssh/ -a
-fi
-
-chown jenkins:jenkins "${JENKINS_HOME}"/.ssh -R
-chmod 600 "${JENKINS_HOME}"/.ssh -R
-
 sed -E '1s,(.*)[[:space:]]*$,\1x,g' -i /usr/local/bin/jenkins.sh
 
 # drop access to jenkins user and run jenkins entrypoint

@@ -4,6 +4,9 @@ ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false -Dhudson.footerURL=https:/
     JENKINS_CONFIG_HOME="/usr/share/jenkins" \
     TRY_UPGRADE_IF_NO_MARKER=true
 
+ENV GOSU_VERSION="1.10" \
+    TINI_VERSION="v0.16.1"
+
 RUN echo 2.0 > /usr/share/jenkins/ref/jenkins.install.UpgradeWizard.state
 
 USER root
@@ -19,22 +22,26 @@ RUN \
       curl \
       gnupg2 \
       software-properties-common \
+    \
+    && ARCH="$(dpkg --print-architecture | awk -F- '{ print $NF }')" \
+    \
     && curl -fsSL https://download.docker.com/linux/$(. /etc/os-release; echo "$ID")/gpg | apt-key add - \
     && add-apt-repository \
-      "deb [arch=amd64] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") \
+      "deb [arch=${ARCH}] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") \
       $(lsb_release -cs) \
       stable" \
     && apt-get update \
     && apt-get install -y \
       docker-ce \
     && adduser jenkins users \
-    && adduser jenkins docker
-
-COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
-RUN \
-  /usr/local/bin/install-plugins.sh < /usr/share/jenkins/ref/plugins.txt
-
-COPY init.groovy.d /usr/share/jenkins/ref/init.groovy.d/
+    && adduser jenkins docker \
+    \
+    && wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-${ARCH}" \
+    && chmod +x /usr/local/bin/gosu \
+    && gosu nobody true \
+    \
+    && wget -O /usr/local/bin/tini "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${ARCH}" \
+    && chmod +x /usr/local/bin/tini
 
 COPY known_hosts /opt/known_hosts
 RUN \
@@ -42,18 +49,15 @@ RUN \
   && cp /opt/known_hosts "${JENKINS_HOME}/.ssh/" \
   && chown jenkins:jenkins "${JENKINS_HOME}" -R
 
-ARG GOSU_VERSION=1.10
+COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
 RUN \
-  dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')" \
-  && wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch" \
- && chmod +x /usr/local/bin/gosu \
- && gosu nobody true
+  /usr/local/bin/install-plugins.sh < /usr/share/jenkins/ref/plugins.txt
 
-ENV TINI_VERSION v0.16.1
+COPY plugins-test.txt /usr/share/jenkins/ref/plugins-test.txt
 RUN \
-  dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')" \
-  && wget -O /usr/local/bin/tini "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-$dpkgArch" \
-  && chmod +x /usr/local/bin/tini
+  /usr/local/bin/install-plugins.sh < /usr/share/jenkins/ref/plugins-test.txt
 
+COPY init.groovy.d /usr/share/jenkins/ref/init.groovy.d/
 COPY entrypoint.sh /entrypoint.sh
+
 ENTRYPOINT ["/entrypoint.sh"]

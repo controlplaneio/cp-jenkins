@@ -23,8 +23,8 @@ git-changelog:latest
 git-client:latest
 github-api:latest
 github-branch-source:latest
-github-oauth:latest
 github:latest
+github-oauth:latest
 github-organization-folder:latest
 github-pr-coverage-status:latest
 github-pullrequest:latest
@@ -44,7 +44,6 @@ mailer:latest
 mapdb-api:latest
 matrix-auth:latest
 matrix-project:latest
-momentjs:latest
 maven-plugin:latest
 metrics:latest
 momentjs:latest
@@ -72,6 +71,7 @@ ssh-agent:latest
 ssh-credentials:latest
 ssh-slaves:latest
 structs:latest
+simple-theme:latest
 subversion:latest
 timestamper:latest
 token-macro:latest
