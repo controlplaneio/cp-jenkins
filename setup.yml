@@ -60,6 +60,7 @@ seed_jobdsl: |
           git {
               remote {
                   url('git@github.com:sublimino/jenkins-dsl.git')
+                  credentials('ssh-key-jenkins-bot')
               }
               branches('*/master')
               extensions {

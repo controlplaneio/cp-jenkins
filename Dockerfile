@@ -1,6 +1,6 @@
 FROM jenkins/jenkins:2.89.3
 
-ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false -Dhudson.footerURL=https://control-plane.io  -Djava.util.logging=DEBUG" \
+ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false -Dhudson.footerURL=https://jenkins.ops.ctlplane.io  -Djava.util.logging=DEBUG" \
     JENKINS_CONFIG_HOME="/usr/share/jenkins" \
     TRY_UPGRADE_IF_NO_MARKER=true
 

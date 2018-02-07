@@ -17,13 +17,13 @@ endif
 CONTAINER_TAG ?= $(GIT_TAG)
 CONTAINER_NAME := $(REGISTRY)/$(NAME):$(CONTAINER_TAG)
 
-JENKINS_HOME_MOUNT_DIR := /opt/jenkins_home/
+JENKINS_HOME_MOUNT_DIR := /mnt/jenkins_home/
 
 export NAME REGISTRY BUILD_DATE GIT_MESSAGE GIT_SHA GIT_TAG CONTAINER_TAG CONTAINER_NAME
 
 
 .PHONY: all
-all: build run
+all: help
 
 .PHONY: build
 build: ## builds a docker image
@@ -54,7 +54,7 @@ run: ## runs the last built docker image with persistent storage
 	@echo "+ $@"
 	pwd
 	mkdir -p $(JENKINS_HOME_MOUNT_DIR)/.ssh/
-	cp $${HOME}/.ssh/{id_rsa,known_hosts} $(JENKINS_HOME_MOUNT_DIR)/.ssh/
+	cp $${HOME}/.ssh/{id_rsa,known_hosts} $(JENKINS_HOME_MOUNT_DIR)/.ssh/ || true
 	chown $${USER}:$${USER} $(JENKINS_HOME_MOUNT_DIR) -R
 	docker run \
 		--rm \
@@ -66,6 +66,65 @@ run: ## runs the last built docker image with persistent storage
 		-v "$(JENKINS_HOME_MOUNT_DIR)":/var/jenkins_home \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		"${CONTAINER_NAME}"
+
+.PHONY: run-prod
+run-prod: run-prod-nginx ## runs production build with nginx TLS
+	@echo "+ $@"
+	pwd
+	docker rm --force jenkins || true
+#  chown $${USER}:$${USER} $(JENKINS_HOME_MOUNT_DIR) -R
+	[[ -d $(JENKINS_HOME_MOUNT_DIR)/.ssh/ ]] || mkdir -p $(JENKINS_HOME_MOUNT_DIR)/.ssh/
+	cp $${HOME}/.ssh/{id_rsa,known_hosts} $(JENKINS_HOME_MOUNT_DIR)/.ssh/ || true
+	ID=$$(docker run \
+		--restart always \
+		--name jenkins \
+		-d \
+		--group-add docker \
+		-e VIRTUAL_PORT="8080" \
+		-e VIRTUAL_HOST="jenkins.ops.ctlplane.io" \
+		-e LETSENCRYPT_HOST="jenkins.ops.ctlplane.io" \
+    -e LETSENCRYPT_EMAIL="sublimino@gmail.com" \
+    -e LETSENCRYPT_TEST='true' \
+    --expose 8080 \
+		-p 50000:50000 \
+		-v "$(shell pwd)/setup.yml":/usr/share/jenkins/setup.yml \
+		-v "$(shell pwd)/setup-secret.yml":/usr/share/jenkins/setup-secret.yml \
+		-v "$(JENKINS_HOME_MOUNT_DIR)":/var/jenkins_home \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		"${CONTAINER_NAME}") && docker logs -f "$${ID}"
+
+.PHONY: run-prod-nginx
+run-prod-nginx: ## run nginx with TLS
+	@echo "+ $@"
+	pwd
+	docker rm --force nginx-proxy || true
+	docker rm --force nginx-proxy-companion || true
+	docker run -d \
+		-p 80:80 -p 443:443 \
+		--restart always \
+		--name nginx-proxy \
+		-v /mnt/certs:/etc/nginx/certs:ro \
+		-v /etc/nginx/vhost.d \
+		-v /usr/share/nginx/html \
+		-v /var/run/docker.sock:/tmp/docker.sock:ro \
+		--label com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy \
+		jwilder/nginx-proxy
+	sleep 3
+	docker run -d \
+		--restart always \
+		--name nginx-proxy-companion \
+		-v /mnt/certs:/etc/nginx/certs:rw \
+		-v /var/run/docker.sock:/var/run/docker.sock:ro \
+		--volumes-from nginx-proxy \
+		jrcs/letsencrypt-nginx-proxy-companion
+
+.PHONY: export
+export: ## package jenkins up for transport
+	docker save "${CONTAINER_NAME}" -o "${CONTAINER_NAME}".tgz
+	tar czf jenkins-home.tgz "$(JENKINS_HOME_MOUNT_DIR)"
+	tar czf jenkins.tgz jenkins-home.tgz "${CONTAINER_NAME}".tgz
+	echo "Written: "${CONTAINER_NAME}".tgz"
+	stat "${CONTAINER_NAME}".tgz
 
 .PHONY: clean
 clean: ## remove temporary files from test-run
