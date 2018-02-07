@@ -72,7 +72,7 @@ run-prod: run-prod-nginx ## runs production build with nginx TLS
 	@echo "+ $@"
 	pwd
 	docker rm --force jenkins || true
-#  chown $${USER}:$${USER} $(JENKINS_HOME_MOUNT_DIR) -R
+	sudo chown $${USER}:$${USER} $(JENKINS_HOME_MOUNT_DIR) -R
 	[[ -d $(JENKINS_HOME_MOUNT_DIR)/.ssh/ ]] || mkdir -p $(JENKINS_HOME_MOUNT_DIR)/.ssh/
 	cp $${HOME}/.ssh/{id_rsa,known_hosts} $(JENKINS_HOME_MOUNT_DIR)/.ssh/ || true
 	ID=$$(docker run \
@@ -81,8 +81,8 @@ run-prod: run-prod-nginx ## runs production build with nginx TLS
 		-d \
 		--group-add docker \
 		-e VIRTUAL_PORT="8080" \
-		-e VIRTUAL_HOST="jenkins.ops.ctlplane.io" \
-		-e LETSENCRYPT_HOST="jenkins.ops.ctlplane.io" \
+		-e VIRTUAL_HOST="jenkins.ctlplane.io" \
+		-e LETSENCRYPT_HOST="jenkins.ctlplane.io" \
     -e LETSENCRYPT_EMAIL="sublimino@gmail.com" \
     -e LETSENCRYPT_TEST='true' \
     --expose 8080 \
@@ -109,7 +109,6 @@ run-prod-nginx: ## run nginx with TLS
 		-v /var/run/docker.sock:/tmp/docker.sock:ro \
 		--label com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy \
 		jwilder/nginx-proxy
-	sleep 3
 	docker run -d \
 		--restart always \
 		--name nginx-proxy-companion \

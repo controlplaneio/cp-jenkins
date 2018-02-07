@@ -48,7 +48,7 @@ seed_jobdsl: |
       checkoutRetryCount(3)
 
       properties {
-          githubProjectUrl('https://github.com/sublimino/jenkins-dsl')
+          githubProjectUrl('https://github.com/controlplaneio/jenkins-dsl')
       }
 
       logRotator {
@@ -59,7 +59,7 @@ seed_jobdsl: |
       scm {
           git {
               remote {
-                  url('git@github.com:sublimino/jenkins-dsl.git')
+                  url('git@github.com:controlplaneio/jenkins-dsl.git')
                   credentials('ssh-key-jenkins-bot')
               }
               branches('*/master')
