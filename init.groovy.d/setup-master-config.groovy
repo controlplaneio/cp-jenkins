@@ -243,12 +243,12 @@ Thread.start {
           home = env['JENKINS_HOME'],
           disabled = config.set_master_kill_switch ->
 
-          new File(home + 'secrets/filepath-filters.d').mkdirs()
-          new File(home + 'secrets/filepath-filters.d/50-gui.conf').createNewFile()
-          new File(home + 'secrets/whitelisted-callables.d').mkdirs()
-          new File(home + 'secrets/whitelisted-callables.d/gui.conf').createNewFile()
+            new File(home + 'secrets/filepath-filters.d').mkdirs()
+            new File(home + 'secrets/filepath-filters.d/50-gui.conf').createNewFile()
+            new File(home + 'secrets/whitelisted-callables.d').mkdirs()
+            new File(home + 'secrets/whitelisted-callables.d/gui.conf').createNewFile()
 
-          instance.getInjector().getInstance(jenkins.security.s2m.AdminWhitelistRule.class).setMasterKillSwitch(disabled)
+            instance.getInjector().getInstance(jenkins.security.s2m.AdminWhitelistRule.class).setMasterKillSwitch(disabled)
         }
         logger.info('Enabled Master -> Slave Security')
       }
@@ -265,6 +265,10 @@ Thread.start {
     Thread.start {
       sleep 5000
       if (Jenkins.instance.pluginManager.activePlugins.find { it.shortName == 'github-oauth' } != null) {
+
+        if (env['GITHUB_OAUTH'] == 'test') {
+          config.github = config.github_test
+        }
 
         String githubWebUri = env['GITHUB_WEB_URI'] ?: config.github.oauth.web_uri ?: 'https://github.com'
         String githubApiUri = env['GITHUB_API_URI'] ?: config.github.oauth.api_uri ?: 'https://api.github.com'
@@ -285,7 +289,7 @@ Thread.start {
         //Admin User Names
         String adminUserNames = env['JENKINS_ADMIN_USERNAME'] ?: config.admin.username ?: 'admin'
         //Participant in Organization
-        String organizationNames = env['GITHUB_ORG'] ?: config.github.orgname ?: ''
+        String organizationNames = env['GITHUB_ORG'] ?: config.github.org_name ?: ''
         //Use Github repository permissions
         boolean useRepositoryPermissions = true
         //Grant READ permissions to all Authenticated Users
@@ -301,7 +305,8 @@ Thread.start {
         //Grant ViewStatus permissions for Anonymous Users
         boolean allowAnonymousJobStatusPermission = false
 
-        AuthorizationStrategy github_authorization = new GithubAuthorizationStrategy(adminUserNames,
+        AuthorizationStrategy github_authorization = new GithubAuthorizationStrategy(
+          adminUserNames,
           authenticatedUserReadPermission,
           useRepositoryPermissions,
           authenticatedUserCreateJobPermission,
@@ -309,7 +314,8 @@ Thread.start {
           allowGithubWebHookPermission,
           allowCcTrayPermission,
           allowAnonymousReadPermission,
-          allowAnonymousJobStatusPermission)
+          allowAnonymousJobStatusPermission
+        )
 
         //check for equality, no need to modify the runtime if no settings changed
         if (!github_authorization.equals(Jenkins.instance.getAuthorizationStrategy())) {
@@ -317,9 +323,9 @@ Thread.start {
           logger.info('Saving Github authorisation strategy')
 
           Jenkins.instance.save()
-        } else {
-          logger.info('Github oauth plugin not found')
         }
+      } else {
+        logger.info('Github oauth plugin not found')
       }
     }
   }

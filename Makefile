@@ -41,6 +41,7 @@ test-run: ## runs the last built docker image with ephemeral storage
 	docker run \
 		--rm \
 		--group-add docker \
+		-e GITHUB_OAUTH=test \
 		-p 8080:8080 \
 		-p 50000:50000 \
 		-v "$(shell pwd)/setup.yml":/usr/share/jenkins/setup.yml \
@@ -59,6 +60,7 @@ run: ## runs the last built docker image with persistent storage
 	docker run \
 		--rm \
 		--group-add docker \
+		-e GITHUB_OAUTH=test \
 		-p 8080:8080 \
 		-p 50000:50000 \
 		-v "$(shell pwd)/setup.yml":/usr/share/jenkins/setup.yml \
@@ -84,7 +86,7 @@ run-prod: run-prod-nginx ## runs production build with nginx TLS
 		-e VIRTUAL_HOST="jenkins.ctlplane.io" \
 		-e LETSENCRYPT_HOST="jenkins.ctlplane.io" \
     -e LETSENCRYPT_EMAIL="sublimino@gmail.com" \
-    -e LETSENCRYPT_TEST='true' \
+    -e LETSENCRYPT_TEST='false' \
     --expose 8080 \
 		-p 50000:50000 \
 		-v "$(shell pwd)/setup.yml":/usr/share/jenkins/setup.yml \
