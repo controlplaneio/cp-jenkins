@@ -54,10 +54,13 @@ test-run: ## runs the last built docker image with ephemeral storage
 run: ## runs the last built docker image with persistent storage
 	@echo "+ $@"
 	pwd
-	mkdir -p $(JENKINS_HOME_MOUNT_DIR)/.ssh/
+	docker rm --force jenkins || true
+	sudo mkdir -p $(JENKINS_HOME_MOUNT_DIR)
+	sudo chown $${USER}:$${USER} $(JENKINS_HOME_MOUNT_DIR) -R
+	[[ -d $(JENKINS_HOME_MOUNT_DIR)/.ssh/ ]] || mkdir -p $(JENKINS_HOME_MOUNT_DIR)/.ssh/
 	cp $${HOME}/.ssh/{id_rsa,known_hosts} $(JENKINS_HOME_MOUNT_DIR)/.ssh/ || true
-	chown $${USER}:$${USER} $(JENKINS_HOME_MOUNT_DIR) -R
 	docker run \
+		--name jenkins \
 		--rm \
 		--group-add docker \
 		-e GITHUB_OAUTH=test \
@@ -74,6 +77,7 @@ run-prod: run-prod-nginx ## runs production build with nginx TLS
 	@echo "+ $@"
 	pwd
 	docker rm --force jenkins || true
+	sudo mkdir -p $(JENKINS_HOME_MOUNT_DIR)
 	sudo chown $${USER}:$${USER} $(JENKINS_HOME_MOUNT_DIR) -R
 	[[ -d $(JENKINS_HOME_MOUNT_DIR)/.ssh/ ]] || mkdir -p $(JENKINS_HOME_MOUNT_DIR)/.ssh/
 	cp $${HOME}/.ssh/{id_rsa,known_hosts} $(JENKINS_HOME_MOUNT_DIR)/.ssh/ || true

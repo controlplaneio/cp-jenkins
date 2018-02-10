@@ -14,13 +14,14 @@ RUN \
     apt-get update \
     && apt-get install -y \
       apt \
-      make \
-      bash \
-      python-pip \
       apt-transport-https \
+      bash \
       ca-certificates \
       curl \
       gnupg2 \
+      jq \
+      make \
+      python-pip \
       software-properties-common \
     \
     && ARCH="$(dpkg --print-architecture | awk -F- '{ print $NF }')" \
