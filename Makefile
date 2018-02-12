@@ -17,7 +17,8 @@ endif
 CONTAINER_TAG ?= $(GIT_TAG)
 CONTAINER_NAME := $(REGISTRY)/$(NAME):$(CONTAINER_TAG)
 
-JENKINS_HOME_MOUNT_DIR := /mnt/jenkins_home/
+JENKINS_HOME_MOUNT_DIR := "/mnt/jenkins_home/"
+JENKINS_TESTING_REPO_MOUNT_DIR := "$${HOME}/src/"
 
 export NAME REGISTRY BUILD_DATE GIT_MESSAGE GIT_SHA GIT_TAG CONTAINER_TAG CONTAINER_NAME
 
@@ -46,6 +47,7 @@ test-run: ## runs the last built docker image with ephemeral storage
 		-p 50000:50000 \
 		-v "$(shell pwd)/setup.yml":/usr/share/jenkins/setup.yml \
 		-v "$(shell pwd)/setup-secret.yml":/usr/share/jenkins/setup-secret.yml \
+		-v "$(JENKINS_TESTING_REPO_MOUNT_DIR)":/mnt/test-repo \
 		-v "$(TMP_DIR)":/var/jenkins_home \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		"${CONTAINER_NAME}"
@@ -69,6 +71,7 @@ run: ## runs the last built docker image with persistent storage
 		-v "$(shell pwd)/setup.yml":/usr/share/jenkins/setup.yml \
 		-v "$(shell pwd)/setup-secret.yml":/usr/share/jenkins/setup-secret.yml \
 		-v "$(JENKINS_HOME_MOUNT_DIR)":/var/jenkins_home \
+		-v "$(JENKINS_TESTING_REPO_MOUNT_DIR):/mnt/test-repo" \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		"${CONTAINER_NAME}"
 
