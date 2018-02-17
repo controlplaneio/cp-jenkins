@@ -19,6 +19,9 @@ CONTAINER_NAME := $(REGISTRY)/$(NAME):$(CONTAINER_TAG)
 
 JENKINS_HOME_MOUNT_DIR := "/mnt/jenkins_home/"
 JENKINS_TESTING_REPO_MOUNT_DIR := "$${HOME}/src/"
+JENKINS_DSL_OVERRIDE := ""
+# e.g. "file:///mnt/test-repo/some-repo"
+JENKINS_LOCAL_JOB_OVERRIDE := ""
 
 export NAME REGISTRY BUILD_DATE GIT_MESSAGE GIT_SHA GIT_TAG CONTAINER_TAG CONTAINER_NAME
 
@@ -32,7 +35,7 @@ build: ## builds a docker image
 	docker build --tag "${CONTAINER_NAME}" .
 
 .PHONY: test-run
-test-run: ## runs the last built docker image with ephemeral storage
+test-run: mount-point ## runs the last built docker image with ephemeral storage
 	@echo "+ $@"
 	pwd
 	$(eval TMP_DIR = $(shell mktemp -d --suffix -jenkins-test))
@@ -43,22 +46,30 @@ test-run: ## runs the last built docker image with ephemeral storage
 		--rm \
 		--group-add docker \
 		-e GITHUB_OAUTH=test \
+		-e JENKINS_DSL_OVERRIDE=$(JENKINS_DSL_OVERRIDE) \
+		-e JENKINS_LOCAL_JOB_OVERRIDE=$(JENKINS_LOCAL_JOB_OVERRIDE) \
 		-p 8080:8080 \
 		-p 50000:50000 \
 		-v "$(shell pwd)/setup.yml":/usr/share/jenkins/setup.yml \
 		-v "$(shell pwd)/setup-secret.yml":/usr/share/jenkins/setup-secret.yml \
-		-v "$(JENKINS_TESTING_REPO_MOUNT_DIR)":/mnt/test-repo \
 		-v "$(TMP_DIR)":/var/jenkins_home \
+		-v "$(JENKINS_TESTING_REPO_MOUNT_DIR)":/mnt/test-repo \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		"${CONTAINER_NAME}"
 
+.PHONY: mount-point
+mount-point: ## creates a mount point for the image volume
+	@echo "+ $@"
+	[[ -d $(JENKINS_HOME_MOUNT_DIR) ]] || { \
+		sudo mkdir -p $(JENKINS_HOME_MOUNT_DIR) \
+		&& sudo chown $${USER}:$${USER} $(JENKINS_HOME_MOUNT_DIR) -R; }
+
 .PHONY: run
-run: ## runs the last built docker image with persistent storage
+run: mount-point ## runs the last built docker image with persistent storage
 	@echo "+ $@"
 	pwd
 	docker rm --force jenkins || true
-	sudo mkdir -p $(JENKINS_HOME_MOUNT_DIR)
-	sudo chown $${USER}:$${USER} $(JENKINS_HOME_MOUNT_DIR) -R
+	chown $${USER}:$${USER} $(JENKINS_HOME_MOUNT_DIR) -R
 	[[ -d $(JENKINS_HOME_MOUNT_DIR)/.ssh/ ]] || mkdir -p $(JENKINS_HOME_MOUNT_DIR)/.ssh/
 	cp $${HOME}/.ssh/{id_rsa,known_hosts} $(JENKINS_HOME_MOUNT_DIR)/.ssh/ || true
 	docker run \
@@ -66,6 +77,8 @@ run: ## runs the last built docker image with persistent storage
 		--rm \
 		--group-add docker \
 		-e GITHUB_OAUTH=test \
+		-e JENKINS_DSL_OVERRIDE=$(JENKINS_DSL_OVERRIDE) \
+		-e JENKINS_LOCAL_JOB_OVERRIDE=$(JENKINS_LOCAL_JOB_OVERRIDE) \
 		-p 8080:8080 \
 		-p 50000:50000 \
 		-v "$(shell pwd)/setup.yml":/usr/share/jenkins/setup.yml \

@@ -1,4 +1,4 @@
-FROM jenkins/jenkins:2.89.3
+FROM jenkins/jenkins:lts
 
 ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false -Dhudson.footerURL=https://jenkins.ops.ctlplane.io  -Djava.util.logging=DEBUG" \
     JENKINS_CONFIG_HOME="/usr/share/jenkins" \
