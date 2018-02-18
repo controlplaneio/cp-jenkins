@@ -11,7 +11,7 @@ GIT_TAG ?= $(shell bash -c 'TAG=$$(git tag | tail -n1); echo "$${TAG:-none}"')
 
 GIT_UNTRACKED_CHANGES := $(shell git status --porcelain --untracked-files=no)
 ifneq ($(GIT_UNTRACKED_CHANGES),)
-	GITCOMMIT := $(GITCOMMIT)-dirty
+	GIT_COMMIT := $(GIT_COMMIT)-dirty
 endif
 
 CONTAINER_TAG ?= $(GIT_TAG)
