@@ -147,6 +147,9 @@ export: ## package jenkins up for transport
 	echo "Written: "${CONTAINER_NAME}".tgz"
 	stat "${CONTAINER_NAME}".tgz
 
+.PHONY: test
+test: build ## ensure build
+
 .PHONY: clean
 clean: ## remove temporary files from test-run
 	sudo rm /tmp/user/1000/tmp.*jenkins-test -rf
