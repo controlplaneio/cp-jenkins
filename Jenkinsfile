@@ -1,6 +1,10 @@
 pipeline {
   agent none
 
+  environment {
+    CONTAINER_TAG = 'latest'
+  }
+
   stages {
     stage('Test') {
       agent {
@@ -15,7 +19,7 @@ pipeline {
 
       steps {
         ansiColor('xterm') {
-          sh 'make test'
+          sh 'make test CONTAINER_TAG="${CONTAINER_TAG}"'
         }
       }
     }
