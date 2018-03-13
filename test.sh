@@ -35,6 +35,8 @@ EXPECTED_NUM_ARGUMENTS=0
 ARGUMENTS=()
 CONTAINER_ID=''
 
+READY_LOG_TEXT="Jenkins provided DSL script setup complete"
+
 export CONTAINER_TAG=latest
 
 main() {
@@ -50,30 +52,55 @@ main() {
 
   wait_until_initialised
 
-  cat
+  sleep 3
+
+  run_tests
 
   success "Done"
 }
+
 
 build_jenkins() {
   make build
 }
 
 start_jenkins() {
-  CONTAINER_ID=$(make run | tail -n1)
+  make test-run
+  info "Waiting for cid file..."
+  until [[ -f /tmp/jenkins-test.cid ]]; do
+    sleep 0.2
+  done
+  CONTAINER_ID=$(cat /tmp/jenkins-test.cid)
 }
 
 cleanup() {
-  docker ps -qf "id=${CONTAINER_ID}" | xargs --no-run-if-empty docker kill
+  docker ps -qf "id=${CONTAINER_ID}" \
+    | xargs --no-run-if-empty docker kill
 }
 
 wait_until_initialised() {
-  local RESULT=""
-  while [[ "${RESULT}" == "" ]]; do
-    RESULT=$(docker logs "${CONTAINER_ID}" |& grep -E 'Completed initialization') || true
-    printf '.'
-    sleep 1
-  done
+  while read LINE; do
+    if echo "${LINE}" | grep -E "${READY_LOG_TEXT}"; then
+      success "Jenkins is ready"
+      break
+    else
+      echo "${LINE}"
+    fi
+  done < <(docker logs -f "${CONTAINER_ID}" 2>&1)
+}
+
+run_tests() {
+
+  # TODO: bats suite
+
+  local HTTP_STATUS_CODE
+  HTTP_STATUS_CODE=$(curl -o /dev/null --silent --head --write-out '%{http_code}\n' localhost:8080)
+
+  if [[ "${HTTP_STATUS_CODE}" != 403 ]]; then
+    error "Expected 403 from UI. Got ${HTTP_STATUS_CODE}"
+  fi
+
+  success "Pass"
 }
 
 handle_arguments() {

@@ -42,9 +42,16 @@ test-run: mount-point ## runs the last built docker image with ephemeral storage
 	mkdir -p $(TMP_DIR)/.ssh/
 	cp $${HOME}/.ssh/{id_rsa,known_hosts} $(TMP_DIR)/.ssh/
 	chown $${USER}:$${USER} $(TMP_DIR) -R
+	if [[ "$(cat /tmp/jenkins-test.cid)" ]]; then \
+		docker ps -q \
+			--filter "name=$(cat /tmp/jenkins-test.cid)" \
+				| xargs --no-run-if-empty docker kill; \
+	fi
+	[[ -f /tmp/jenkins-test.cid ]] && rm /tmp/jenkins-test.cid
 	docker run \
-		--rm \
+		-d \
 		--group-add docker \
+		--cidfile /tmp/jenkins-test.cid \
 		-e GITHUB_OAUTH=test \
 		-e JENKINS_DSL_OVERRIDE=$(JENKINS_DSL_OVERRIDE) \
 		-e JENKINS_LOCAL_JOB_OVERRIDE=$(JENKINS_LOCAL_JOB_OVERRIDE) \
@@ -148,7 +155,8 @@ export: ## package jenkins up for transport
 	stat "${CONTAINER_NAME}".tgz
 
 .PHONY: test
-test: build ## ensure build
+test: ## build and test image
+	./test.sh
 
 .PHONY: clean
 clean: ## remove temporary files from test-run

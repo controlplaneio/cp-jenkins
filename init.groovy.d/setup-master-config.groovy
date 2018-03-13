@@ -1,3 +1,5 @@
+#!groovy
+
 // this requires internet access
 @Grapes([
   @Grab(group = 'org.yaml', module = 'snakeyaml', version = '1.17')
@@ -6,7 +8,6 @@
 import org.yaml.snakeyaml.Yaml
 import java.util.logging.Logger
 import com.cloudbees.plugins.credentials.*
-import com.cloudbees.plugins.credentials.CredentialsStore
 
 import com.cloudbees.plugins.credentials.common.*
 import com.cloudbees.plugins.credentials.domains.*
@@ -328,6 +329,8 @@ Thread.start {
       } else {
         logger.info('Github oauth plugin not found')
       }
+
+      logger.info 'Jenkins provided DSL script setup complete'
     }
   }
 }
