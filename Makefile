@@ -62,8 +62,8 @@ test-run: mount-point ## runs the last built docker image with ephemeral storage
 		-e GITHUB_OAUTH=test \
 		-e JENKINS_DSL_OVERRIDE=$(JENKINS_DSL_OVERRIDE) \
 		-e JENKINS_LOCAL_JOB_OVERRIDE=$(JENKINS_LOCAL_JOB_OVERRIDE) \
-		-p 8080:8080 \
-		-p 50000:50000 \
+		-p 8090:8080 \
+		-p 50090:50000 \
 		-v "$(shell pwd)/setup.yml":/usr/share/jenkins/setup.yml \
 		-v "$(shell pwd)/setup-secret.yml":/usr/share/jenkins/setup-secret.yml \
 		-v "$(TMP_DIR)":/var/jenkins_home \
