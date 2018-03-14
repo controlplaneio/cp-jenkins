@@ -47,7 +47,7 @@ RUN \
 COPY known_hosts /opt/known_hosts
 RUN \
   mkdir -p "${JENKINS_HOME}/.ssh/" || true \
-  && cp /opt/known_hosts "${JENKINS_HOME}/.ssh/" \
+  && ssh-keyscan -H github.com >> "${JENKINS_HOME}/.ssh/known_hosts" \
   && chown jenkins:jenkins "${JENKINS_HOME}" -R
 
 COPY plugins.txt /usr/share/jenkins/ref/plugins.txt

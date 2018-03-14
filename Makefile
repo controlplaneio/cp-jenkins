@@ -34,13 +34,20 @@ build: ## builds a docker image
 	@echo "+ $@"
 	docker build --tag "${CONTAINER_NAME}" .
 
+.PHONY: mount-point
+mount-point: ## creates a mount point for the image volume
+	@echo "+ $@"
+	[[ -d $(JENKINS_HOME_MOUNT_DIR) ]] || { \
+		mkdir -p $(JENKINS_HOME_MOUNT_DIR) \
+		&& chown $${USER}:$${USER} $(JENKINS_HOME_MOUNT_DIR) -R; \
+	}
+
 .PHONY: test-run
 test-run: mount-point ## runs the last built docker image with ephemeral storage
 	@echo "+ $@"
 	pwd
 	$(eval TMP_DIR = $(shell mktemp -d --suffix -jenkins-test))
 	mkdir -p $(TMP_DIR)/.ssh/
-	cp $${HOME}/.ssh/{id_rsa,known_hosts} $(TMP_DIR)/.ssh/
 	chown $${USER}:$${USER} $(TMP_DIR) -R
 	if [[ "$(cat /tmp/jenkins-test.cid)" ]]; then \
 		docker ps -q \
@@ -64,21 +71,18 @@ test-run: mount-point ## runs the last built docker image with ephemeral storage
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		"${CONTAINER_NAME}"
 
-.PHONY: mount-point
-mount-point: ## creates a mount point for the image volume
-	@echo "+ $@"
-	[[ -d $(JENKINS_HOME_MOUNT_DIR) ]] || { \
-		sudo mkdir -p $(JENKINS_HOME_MOUNT_DIR) \
-		&& sudo chown $${USER}:$${USER} $(JENKINS_HOME_MOUNT_DIR) -R; }
+define pre-run
+	pwd
+	docker rm --force jenkins || true
+	chown $${USER}:$${USER} $(JENKINS_HOME_MOUNT_DIR) -R
+	mkdir -p $(JENKINS_HOME_MOUNT_DIR) || true
+	[[ -d $(JENKINS_HOME_MOUNT_DIR)/.ssh/ ]] || mkdir -p $(JENKINS_HOME_MOUNT_DIR)/.ssh/
+endef
 
 .PHONY: run
 run: mount-point ## runs the last built docker image with persistent storage
 	@echo "+ $@"
-	pwd
-	docker rm --force jenkins || true
-	chown $${USER}:$${USER} $(JENKINS_HOME_MOUNT_DIR) -R
-	[[ -d $(JENKINS_HOME_MOUNT_DIR)/.ssh/ ]] || mkdir -p $(JENKINS_HOME_MOUNT_DIR)/.ssh/
-	cp $${HOME}/.ssh/{id_rsa,known_hosts} $(JENKINS_HOME_MOUNT_DIR)/.ssh/ || true
+	pre-run
 	docker run \
 		--name jenkins \
 		--rm \
@@ -98,12 +102,7 @@ run: mount-point ## runs the last built docker image with persistent storage
 .PHONY: run-prod
 run-prod: run-prod-nginx ## runs production build with nginx TLS
 	@echo "+ $@"
-	pwd
-	docker rm --force jenkins || true
-	sudo mkdir -p $(JENKINS_HOME_MOUNT_DIR)
-	sudo chown $${USER}:$${USER} $(JENKINS_HOME_MOUNT_DIR) -R
-	[[ -d $(JENKINS_HOME_MOUNT_DIR)/.ssh/ ]] || mkdir -p $(JENKINS_HOME_MOUNT_DIR)/.ssh/
-	cp $${HOME}/.ssh/{id_rsa,known_hosts} $(JENKINS_HOME_MOUNT_DIR)/.ssh/ || true
+	pre-run
 	ID=$$(docker run \
 		--restart always \
 		--name jenkins \
@@ -129,7 +128,8 @@ run-prod-nginx: ## run nginx with TLS
 	docker rm --force nginx-proxy || true
 	docker rm --force nginx-proxy-companion || true
 	docker run -d \
-		-p 80:80 -p 443:443 \
+		-p 80:80 \
+		-p 443:443 \
 		--restart always \
 		--name nginx-proxy \
 		-v /mnt/certs:/etc/nginx/certs:ro \
