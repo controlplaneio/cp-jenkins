@@ -34,6 +34,7 @@ declare -a ARGUMENTS
 EXPECTED_NUM_ARGUMENTS=0
 ARGUMENTS=()
 CONTAINER_ID=''
+PORT="8080"
 
 READY_LOG_TEXT="Jenkins provided DSL script setup complete"
 
@@ -94,7 +95,7 @@ run_tests() {
   # TODO: bats suite
 
   local HTTP_STATUS_CODE
-  HTTP_STATUS_CODE=$(curl -o /dev/null --silent --head --write-out '%{http_code}\n' localhost:8080)
+  HTTP_STATUS_CODE=$(curl -o /dev/null --silent --head --write-out '%{http_code}\n' localhost:${PORT})
 
   if [[ "${HTTP_STATUS_CODE}" != 403 ]]; then
     error "Expected 403 from UI. Got ${HTTP_STATUS_CODE}"
@@ -122,6 +123,11 @@ parse_arguments() {
         shift
         not_empty_or_usage "${1:-}"
         DESCRIPTION="${1}"
+        ;;
+      -p | --port)
+        shift
+        not_empty_or_usage "${1:-}"
+        PORT="${1}"
         ;;
       -t | --type)
         shift

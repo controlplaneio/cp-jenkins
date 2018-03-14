@@ -25,6 +25,7 @@ JENKINS_LOCAL_JOB_OVERRIDE := ""
 
 export NAME REGISTRY BUILD_DATE GIT_MESSAGE GIT_SHA GIT_TAG CONTAINER_TAG CONTAINER_NAME
 
+TEST_HTTP_PORT=8090
 
 .PHONY: all
 all: help
@@ -59,7 +60,7 @@ test-run: mount-point ## runs the last built docker image with ephemeral storage
 		-e GITHUB_OAUTH=test \
 		-e JENKINS_DSL_OVERRIDE=$(JENKINS_DSL_OVERRIDE) \
 		-e JENKINS_LOCAL_JOB_OVERRIDE=$(JENKINS_LOCAL_JOB_OVERRIDE) \
-		-p 8090:8080 \
+		-p $(TEST_HTTP_PORT):8080 \
 		-p 50090:50000 \
 		-v "$(shell pwd)/setup.yml":/usr/share/jenkins/setup.yml \
 		-v "$(shell pwd)/setup-secret.yml":/usr/share/jenkins/setup-secret.yml \
@@ -152,7 +153,7 @@ export: ## package jenkins up for transport
 
 .PHONY: test
 test: ## build and test image
-	./test.sh
+	./test.sh --debug --port $(TEST_HTTP_PORT)
 
 .PHONY: clean
 clean: ## remove temporary files from test-run
