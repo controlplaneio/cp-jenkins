@@ -54,7 +54,7 @@ test-run: mount-point ## runs the last built docker image with ephemeral storage
 			--filter "name=$(cat /tmp/jenkins-test.cid)" \
 				| xargs --no-run-if-empty docker kill; \
 	fi
-	[[ -f /tmp/jenkins-test.cid ]] && rm /tmp/jenkins-test.cid
+	rm -f /tmp/jenkins-test.cid || true
 	docker run \
 		-d \
 		--group-add docker \
