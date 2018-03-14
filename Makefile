@@ -46,9 +46,6 @@ mount-point: ## creates a mount point for the image volume
 test-run: mount-point ## runs the last built docker image with ephemeral storage
 	@echo "+ $@"
 	pwd
-	$(eval TMP_DIR = $(shell mktemp -d --suffix -jenkins-test))
-	mkdir -p $(TMP_DIR)/.ssh/
-	chown $${USER}:$${USER} $(TMP_DIR) -R
 	if [[ "$(cat /tmp/jenkins-test.cid)" ]]; then \
 		docker ps -q \
 			--filter "name=$(cat /tmp/jenkins-test.cid)" \
@@ -66,7 +63,6 @@ test-run: mount-point ## runs the last built docker image with ephemeral storage
 		-p 50090:50000 \
 		-v "$(shell pwd)/setup.yml":/usr/share/jenkins/setup.yml \
 		-v "$(shell pwd)/setup-secret.yml":/usr/share/jenkins/setup-secret.yml \
-		-v "$(TMP_DIR)":/var/jenkins_home \
 		-v "$(JENKINS_TESTING_REPO_MOUNT_DIR)":/mnt/test-repo \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		"${CONTAINER_NAME}"
