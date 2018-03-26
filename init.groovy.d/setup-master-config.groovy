@@ -295,7 +295,7 @@ Thread.start {
         //Use Github repository permissions
         boolean useRepositoryPermissions = true
         //Grant READ permissions to all Authenticated Users
-        boolean authenticatedUserReadPermission = false
+        boolean authenticatedUserReadPermission = true
         //Grant CREATE Job permissions to all Authenticated Users
         boolean authenticatedUserCreateJobPermission = false
         //Grant READ permissions for /github-webhook

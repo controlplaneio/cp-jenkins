@@ -1,0 +1,10 @@
+[
+  "tests/test_secret_create.py::test_sort_creds_simple", 
+  "tests/test_secret_create.py::test_sort_two_creds_simple", 
+  "tests/test_secret_create.py::test_read_secrets_simple", 
+  "tests/test_secret_create.py::test_read_secrets_simple_sshuserpass", 
+  "tests/test_secret_create.py::test_read_secrets_single_env", 
+  "tests/test_secret_create.py::test_read_secrets_multi_env_first", 
+  "tests/test_secret_create.py::test_read_secrets_multi_env_second", 
+  "tests/test_secret_create.py::test_read_secrets_multi_env"
+]

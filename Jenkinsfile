@@ -19,6 +19,7 @@ pipeline {
 
       steps {
         ansiColor('xterm') {
+          sh 'make pull-base-image'
           sh 'make test CONTAINER_TAG="${CONTAINER_TAG}"'
         }
       }

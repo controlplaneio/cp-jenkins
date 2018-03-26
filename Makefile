@@ -30,10 +30,30 @@ TEST_HTTP_PORT=8090
 .PHONY: all
 all: help
 
+.PHONY: secrets-create
+secrets-create: ## write secrets to the Jenkins API
+	@echo "+ $@"
+	script/populate-secrets.sh
+
+.PHONY: secrets-delete
+secrets-delete: ## delete secrets from the Jenkins API
+	@echo "+ $@"
+	script/populate-secrets.sh --delete
+
+.PHONY: test-secrets
+secrets-test: ## test secrets
+	@echo "+ $@"
+	script/test.sh
+
 .PHONY: build
-build: ## builds a docker image
+build: ## builds a Docker image
 	@echo "+ $@"
 	docker build --tag "${CONTAINER_NAME}" .
+
+.PHONY: pull-base-image
+pull-base-image: ## pulls a Docker base image
+	@echo "+ $@"
+	grep FROM Dockerfile | awk '{print $$2}' | xargs -n 1 docker pull
 
 .PHONY: mount-point
 mount-point: ## creates a mount point for the image volume
@@ -68,10 +88,11 @@ test-run: mount-point ## runs the last built docker image with ephemeral storage
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		"${CONTAINER_NAME}"
 
+
 define pre-run
 	pwd
 	docker rm --force jenkins || true
-	chown $${USER}:$${USER} $(JENKINS_HOME_MOUNT_DIR) -R
+	chown $${USER}:$${USER} $(JENKINS_HOME_MOUNT_DIR) -R || true
 	mkdir -p $(JENKINS_HOME_MOUNT_DIR) || true
 	[[ -d $(JENKINS_HOME_MOUNT_DIR)/.ssh/ ]] || mkdir -p $(JENKINS_HOME_MOUNT_DIR)/.ssh/
 endef
@@ -79,7 +100,9 @@ endef
 .PHONY: run
 run: mount-point ## runs the last built docker image with persistent storage
 	@echo "+ $@"
-	pre-run
+
+	$(pre-run)
+
 	docker run \
 		--name jenkins \
 		--rm \

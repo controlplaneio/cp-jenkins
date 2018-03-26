@@ -1,0 +1,9 @@
+---
+ansible_credentials: "example ansible credential for 2nd env"
+aws_credentials:
+  - username: "aws username for 2nd env"
+  - password: "aws password for 2nd env"
+docker_crenentials:
+  - username: "docker username for 2nd env"
+  - password: "docker password for 2nd env"
+ssh_credentials: "example ssh credential for 2nd env"

@@ -29,7 +29,7 @@ To iterate quickly on a Jenkinsfile without having to commit to a remote reposti
 
 1. `make run`
     1. this mounts the `JENKINS_TESTING_REPO_MOUNT_DIR` to `/mnt/test-repo`
-1. log in at http://localhost:8080
+1. log in at [http://localhost:8080](http://localhost:8080)
 1. in security: disable script approval
 1. in security: allow anyone to do anything (this replaces the GitHub auth strategy - ONLY USE LOCALLY)
 1. create a new pipeline job (or whatever you're testing)
