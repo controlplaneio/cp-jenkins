@@ -17,6 +17,13 @@ pipeline {
         }
       }
 
+      options {
+        timeout(time: 15, unit: 'MINUTES')
+        retry(1)
+        timestamps()
+        disableConcurrentBuilds()
+      }
+
       steps {
         ansiColor('xterm') {
           sh 'make pull-base-image'
