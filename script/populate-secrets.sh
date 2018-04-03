@@ -12,4 +12,4 @@ fi
 
 . .venv/bin/activate
 
-python2 ./create_secrets.py $@
+python2 ./create_jenkins_secrets.py $@
