@@ -130,15 +130,15 @@ def parse_args():
     else:
         url_base = args.server
 
-    if args.username is None:
-        admin_user = raw_input("Jenkins admin username: ")
-    else:
-        admin_user = args.username
-
     if args.secrets_dir is None:
         secrets_dir = raw_input("Local YAML secrets directory: ")
     else:
         secrets_dir = args.secrets_dir
+
+    if args.username is None:
+        admin_user = raw_input("Jenkins admin username: ")
+    else:
+        admin_user = args.username
 
     api_token = getpass.getpass("Jenkins API Token for " + admin_user + ": ")
 
@@ -200,7 +200,9 @@ def get_crumb(url_base):
         "{}/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,\":\",//crumb)".format(url_base),
         auth=(admin_user, api_token), verify=False
     )
+
     if not check_status_code_is_200(response, tolerate_failure=True):
+        logging.debug('Status is not 200 on crumb request')
         crumb_enabled = False
         return ""
 
@@ -219,12 +221,16 @@ def check_status_code_is_200(response, tolerate_failure=False):
             return False
         sys.exit(1)
 
+    return True
+
 
 def check_status_code_is_200_or_404(response):
     if response.status_code != 200 and response.status_code != 404:
         logging.error("Request failed: status code {}".format(response.status_code))
         logging.error(response.text.encode('UTF-8'))
         sys.exit(1)
+
+    return True
 
 
 def get_headers():
