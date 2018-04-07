@@ -1,4 +1,6 @@
-# cp-jenkins
+# ControlPlane: Jenkins
+
+## Quickstart
 
 Repo for building a Jenkins container that works with our infra.
 
@@ -23,7 +25,16 @@ which uses a new `/tmp/foo` directory each time.
 $ make test-run
 ```
 
-## local workflow
+## Configuration
+
+1. Jenkins requires a manual `ssh git@github.com` from the command line to accept `github.com`'s public key
+    ```bash
+    docker exec -it CONTAINER_ID ssh -t git@github.com
+    ```
+1. Credentials need to be added to clone repositories
+1. In-process script approval is required to allow the initial DSL scripts
+
+## Local Workflow
 
 To iterate quickly on a Jenkinsfile without having to commit to a remote repostiory, a local directory can be mounted into the Jenkins container.
 
@@ -44,6 +55,8 @@ In the repo under test:
 1. Update the repos, then
 1. `git add . && git commit -m "Auto commit $(date)"`
 
+## Trigger Build via API
+
 Optionally, trigger Jenkins via its API (you may need to retrieve your API token):
 
 ```bash
@@ -55,40 +68,40 @@ jenkins-trigger ()
     local LAST_JOB_JSON=$(curl --silent http://${USER}:${TOKEN}@localhost:8080/job/${JOB_NAME}/lastBuild/api/json);
     local LAST_JOB=$(echo "${LAST_JOB_JSON}" \
       | jq -r '"\(.id) \(.result) \(.url)"');
-    
+
     if [[ "${LAST_JOB:-}" == "" ]]; then
         return 1;
     fi;
-    
+
     local LAST_JOB_PARAMS=$(echo "${LAST_JOB_JSON}" \
       | jq -r '.actions? []? | select(."_class" == "hudson.model.ParametersAction") | .parameters? | .[] | "\(.name)=\(.value)"' \
       | tr '\n' '&' \
       | sed -E 's/(.*).$/\1/g');
     local BUILD_COMMAND='build';
-    
+
     if [[ "${LAST_JOB_PARAMS:-}" != "" ]]; then
         BUILD_COMMAND="buildWithParameters?${LAST_JOB_PARAMS}";
     fi;
-    
+
     curl -A --connect-timeout 5 -XPOST --silent \
       "http://${USER}:${TOKEN}@localhost:8080/job/${JOB_NAME}/${BUILD_COMMAND}";
     printf "${JOB_NAME} triggered";
-    
+
     local THIS_JOB=$(curl --silent http://${USER}:${TOKEN}@localhost:8080/job/${JOB_NAME}/lastBuild/api/json | jq -r '"\(.id) \(.result) \(.url)"');
-    
+
     while [[ $(echo "${LAST_JOB}" | awk '{print $1}') == $(echo "${THIS_JOB}" | awk '{print $1}') ]]; do
         THIS_JOB=$(curl --silent http://${USER}:${TOKEN}@localhost:8080/job/${JOB_NAME}/lastBuild/api/json | jq -r '"\(.id) \(.result) \(.url)"');
         printf .;
         sleep 1;
     done;
-    
+
     while [[ $(curl --silent \
       http://${USER}:${TOKEN}@localhost:8080/job/${JOB_NAME}/lastBuild/api/json \
         | jq -r '"\(.result)"') = 'null' ]]; do
         printf .;
         sleep 1;
     done;
-    
+
     THIS_JOB=$(curl --silent \
       http://${USER}:${TOKEN}@localhost:8080/job/${JOB_NAME}/lastBuild/api/json \
       | jq -r '"\(.id) \(.result) \(.url)"');
@@ -119,3 +132,4 @@ git reset --soft \
 ## Further reading
 
 - https://github.com/forj-oss/jenkins-install-inits
+- https://github.com/jenkins-x/jx
