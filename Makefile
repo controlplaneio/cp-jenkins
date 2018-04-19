@@ -63,7 +63,7 @@ mount-point: ## creates a mount point for the image volume
 	@echo "+ $@"
 	[[ -d $(JENKINS_HOME_MOUNT_DIR) ]] || { \
 		mkdir -p $(JENKINS_HOME_MOUNT_DIR) \
-		&& chown $${USER}:$${USER} $(JENKINS_HOME_MOUNT_DIR) -R; \
+		&& chown $${USER} $(JENKINS_HOME_MOUNT_DIR) -R; \
 	}
 
 .PHONY: test-run
@@ -95,7 +95,7 @@ test-run: mount-point ## runs the last built docker image with ephemeral storage
 define pre-run
 	pwd
 	docker rm --force jenkins || true
-	chown $${USER}:$${USER} $(JENKINS_HOME_MOUNT_DIR) -R || true
+	chown $${USER} $(JENKINS_HOME_MOUNT_DIR) -R || true
 	mkdir -p $(JENKINS_HOME_MOUNT_DIR) || true
 	[[ -d $(JENKINS_HOME_MOUNT_DIR)/.ssh/ ]] || mkdir -p $(JENKINS_HOME_MOUNT_DIR)/.ssh/
 endef
