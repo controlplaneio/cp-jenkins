@@ -10,6 +10,8 @@ To build:
 $ make build
 ```
 
+Before you can run it you should do a `git-crypt unlock` as there is an encrypted secret.
+
 To launch locally, once built:
 
 ```
