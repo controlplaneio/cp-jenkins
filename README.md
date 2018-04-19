@@ -13,8 +13,11 @@ $ make build
 To launch locally, once built:
 
 ```
-$ JENKINS_HOME_MOUNT_DIR=~/jenkins_home make run # make sure this dir existS
+$ JENKINS_HOME_MOUNT_DIR=${HOME}/jenkins_home make run
 ```
+
+Make sure `JENKINS_HOME_MOUNT_DIR` exists, and is an absolute path. If you don't
+specify it, it will default to `/mnt/jenkins_home`.
 
 Then go to `http://localhost:8080` in your browser.
 

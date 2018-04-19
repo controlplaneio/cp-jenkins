@@ -17,7 +17,10 @@ endif
 CONTAINER_TAG ?= $(GIT_TAG)
 CONTAINER_NAME := $(REGISTRY)/$(NAME):$(CONTAINER_TAG)
 
-JENKINS_HOME_MOUNT_DIR := "/mnt/jenkins_home/"
+JENKINS_HOME_MOUNT_DIR := "$(JENKINS_HOME_MOUNT_DIR)"
+ifeq ($(JENKINS_HOME_MOUNT_DIR),"")
+  JENKINS_HOME_MOUNT_DIR := "/mnt/jenkins_home/"
+endif
 JENKINS_TESTING_REPO_MOUNT_DIR := "$${HOME}/src/"
 JENKINS_DSL_OVERRIDE := ""
 # e.g. "file:///mnt/test-repo/some-repo"
