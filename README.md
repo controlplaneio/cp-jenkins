@@ -46,9 +46,12 @@ To iterate quickly on a Jenkinsfile without having to commit to a remote reposti
 
 1. `make run`
     1. this mounts the `JENKINS_TESTING_REPO_MOUNT_DIR` to `/mnt/test-repo`
-1. log in at [http://localhost:8080](http://localhost:8080)
-1. in security: disable script approval
-1. in security: allow anyone to do anything (this replaces the GitHub auth strategy - ONLY USE LOCALLY)
+1. Log in at [http://localhost:8080](http://localhost:8080)
+1. Disable security in the config file in order to access all the settings, using this
+   command (which you should ONLY USE LOCALLY):
+  ```
+  sed -i 's/<useSecurity>true<\/useSecurity>/<useSecurity>false<\/useSecurity>/' config.xml
+  ```
 1. create a new pipeline job (or whatever you're testing)
     1. set the path to `file:///mnt/test-repo` (or a subdirectory thereof)
     1. disable shallow checkout
