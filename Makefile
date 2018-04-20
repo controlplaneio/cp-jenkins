@@ -1,6 +1,6 @@
 NAME := cp-jenkins
 PKG := github.com/controlplane/$(NAME)
-REGISTRY := docker.io
+REGISTRY := docker.io/controlplane
 
 SHELL := /bin/bash
 BUILD_DATE := $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
@@ -128,7 +128,7 @@ run: mount-point ## runs the last built docker image with persistent storage
 .PHONY: run-prod
 run-prod: run-prod-nginx ## runs production build with nginx TLS
 	@echo "+ $@"
-	pre-run
+	$(pre-run)
 	ID=$$(docker run \
 		--restart always \
 		--name jenkins \
