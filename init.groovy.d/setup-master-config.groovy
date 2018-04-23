@@ -6,7 +6,7 @@
 ])
 
 import org.yaml.snakeyaml.Yaml
-import java.util.logging.Logger.*
+import java.util.logging.Logger
 import com.cloudbees.plugins.credentials.*
 
 import com.cloudbees.plugins.credentials.common.*
