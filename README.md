@@ -34,9 +34,9 @@ $ make test-run
 
 1. Jenkins requires a manual `ssh git@github.com` from the command line to accept `github.com`'s public key
     ```bash
-    docker exec -it CONTAINER_ID bash -c 'mkdir -p ~/.ssh && ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts'
+    docker exec -it CONTAINER_ID su jenkins -c -- bash -c 'mkdir -p ~/.ssh && ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts'
     ```
-   (Successful output looks something like `# github.com:22 SSH-2.0-libssh_0.7.0`, and there is a github.com entry in `/root/.ssh/known_hosts`)
+   (Successful output looks something like `# github.com:22 SSH-2.0-libssh_0.7.0`, and there is a github.com entry in `/var/jenkins_home/.ssh/known_hosts`)
 1. Credentials need to be added to clone repositories
 1. In-process script approval is required to allow the initial DSL scripts
 
