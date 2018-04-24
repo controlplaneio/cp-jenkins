@@ -17,6 +17,10 @@ endif
 CONTAINER_TAG ?= $(GIT_TAG)
 CONTAINER_NAME := $(REGISTRY)/$(NAME):$(CONTAINER_TAG)
 
+VIRTUAL_HOST ?= "jenkins.ctlplane.io"
+LETSENCRYPT_EMAIL ?= "sublimino@gmail.com"
+
+
 JENKINS_HOME_MOUNT_DIR := "$(JENKINS_HOME_MOUNT_DIR)"
 ifeq ($(JENKINS_HOME_MOUNT_DIR),"")
   JENKINS_HOME_MOUNT_DIR := "/mnt/jenkins_home/"
@@ -52,7 +56,7 @@ secrets-test: ## test secrets
 	script/test.sh
 
 .PHONY: build
-build: ## builds a Docker image
+build: pull-base-image ## builds a Docker image
 	@echo "+ $@"
 	docker build --tag "${CONTAINER_NAME}" .
 
@@ -64,18 +68,17 @@ pull-base-image: ## pulls a Docker base image
 .PHONY: mount-point
 mount-point: ## creates a mount point for the image volume
 	@echo "+ $@"
-	[[ -d $(JENKINS_HOME_MOUNT_DIR) ]] || { \
-		mkdir -p $(JENKINS_HOME_MOUNT_DIR) \
-		&& chown $${USER} $(JENKINS_HOME_MOUNT_DIR) -R; \
-	}
+	[[ -d $(JENKINS_HOME_MOUNT_DIR) ]] || mkdir -p $(JENKINS_HOME_MOUNT_DIR)
+	[[ -d $(JENKINS_HOME_MOUNT_DIR)/.ssh/ ]] || mkdir -p $(JENKINS_HOME_MOUNT_DIR)/.ssh/
+	chown $${USER} $(JENKINS_HOME_MOUNT_DIR) -R;
 
 .PHONY: test-run
 test-run: mount-point ## runs the last built docker image with ephemeral storage
 	@echo "+ $@"
-	pwd
-	if [[ "$(cat /tmp/jenkins-test.cid)" ]]; then \
+	docker rm --force jenkins || true
+	if [[ -n "$(cat /tmp/jenkins-test.cid)" ]]; then \
 		docker ps -q \
-			--filter "name=$(cat /tmp/jenkins-test.cid)" \
+			--filter "id=$(cat /tmp/jenkins-test.cid)" \
 				| xargs --no-run-if-empty docker kill; \
 	fi
 	rm -f /tmp/jenkins-test.cid || true
@@ -94,21 +97,10 @@ test-run: mount-point ## runs the last built docker image with ephemeral storage
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		"${CONTAINER_NAME}"
 
-
-define pre-run
-	pwd
-	docker rm --force jenkins || true
-	chown $${USER} $(JENKINS_HOME_MOUNT_DIR) -R || true
-	mkdir -p $(JENKINS_HOME_MOUNT_DIR) || true
-	[[ -d $(JENKINS_HOME_MOUNT_DIR)/.ssh/ ]] || mkdir -p $(JENKINS_HOME_MOUNT_DIR)/.ssh/
-endef
-
 .PHONY: run
 run: mount-point ## runs the last built docker image with persistent storage
 	@echo "+ $@"
-
-	$(pre-run)
-
+	docker rm --force jenkins || true
 	docker run \
 		--name jenkins \
 		--rm \
@@ -128,16 +120,15 @@ run: mount-point ## runs the last built docker image with persistent storage
 .PHONY: run-prod
 run-prod: run-prod-nginx ## runs production build with nginx TLS
 	@echo "+ $@"
-	$(pre-run)
 	ID=$$(docker run \
 		--restart always \
 		--name jenkins \
 		-d \
 		--group-add docker \
 		-e VIRTUAL_PORT="8080" \
-		-e VIRTUAL_HOST="jenkins.ctlplane.io" \
-		-e LETSENCRYPT_HOST="jenkins.ctlplane.io" \
-    -e LETSENCRYPT_EMAIL="sublimino@gmail.com" \
+		-e VIRTUAL_HOST="$(VIRTUAL_HOST)" \
+		-e LETSENCRYPT_HOST="$(VIRTUAL_HOST)" \
+    -e LETSENCRYPT_EMAIL="$(LETSENCRYPT_EMAIL)" \
     -e LETSENCRYPT_TEST='false' \
     --expose 8080 \
 		-p 50000:50000 \
@@ -182,7 +173,7 @@ export: ## package jenkins up for transport
 
 .PHONY: test
 test: ## build and test image
-	./test.sh --debug --port $(TEST_HTTP_PORT)
+	./test.sh --port $(TEST_HTTP_PORT)
 
 .PHONY: clean
 clean: ## remove temporary files from test-run

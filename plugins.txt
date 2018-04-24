@@ -19,7 +19,6 @@ email-ext:latest
 external-monitor-job:latest
 favorite:latest
 ghprb:latest
-git-changelog:latest
 git-client:latest
 github-api:latest
 github-branch-source:latest
