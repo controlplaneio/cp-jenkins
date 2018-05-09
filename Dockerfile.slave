@@ -1,0 +1,39 @@
+FROM jenkins/jnlp-slave:latest
+
+ENV JENKINS_HOME=/home/jenkins/
+
+USER root
+RUN \
+    apt-get update \
+    && apt-get install -y \
+      apt \
+      apt-transport-https \
+      bash \
+      ca-certificates \
+      curl \
+      gnupg2 \
+      jq \
+      make \
+      python-pip \
+      software-properties-common \
+    \
+    && ARCH="$(dpkg --print-architecture | awk -F- '{ print $NF }')" \
+    \
+    && curl -fsSL https://download.docker.com/linux/$(. /etc/os-release; echo "$ID")/gpg | apt-key add - \
+    && add-apt-repository \
+      "deb [arch=${ARCH}] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") \
+      $(lsb_release -cs) \
+      stable" \
+    && apt-get update \
+    && apt-get install -y \
+      docker-ce \
+    && adduser jenkins users \
+    && adduser jenkins docker
+
+COPY known_hosts /opt/known_hosts
+RUN \
+  mkdir -p "${JENKINS_HOME}/.ssh/" || true \
+  && ssh-keyscan -H github.com >> "${JENKINS_HOME}/.ssh/known_hosts" \
+  && chown jenkins:jenkins "${JENKINS_HOME}" -R
+
+USER jenkins
