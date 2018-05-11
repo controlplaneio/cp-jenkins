@@ -37,6 +37,7 @@ CONTAINER_ID=''
 PORT="8080"
 
 READY_LOG_TEXT="Jenkins provided DSL script setup complete"
+FAILED_LOG_TEXT="Failed to run script file"
 
 export CONTAINER_TAG=latest
 
@@ -80,14 +81,31 @@ cleanup() {
 }
 
 wait_until_initialised() {
+  local IS_FAILED=0
   while read LINE; do
     if echo "${LINE}" | grep -E "${READY_LOG_TEXT}"; then
       success "Jenkins is ready"
       break
+    elif echo "${LINE}" | grep -E "${FAILED_LOG_TEXT}"; then
+      warning "Failed to start Jenkins, failing"
+      IS_FAILED=$((IS_FAILED + 1))
     else
-      echo "${LINE}"
+      echo -e "${LINE}"
+    fi
+
+    if [[ "${IS_FAILED}" -gt 30 ]]; then
+      error "Failed"
+      break
+    elif [[ "${IS_FAILED}" -gt 0 ]]; then
+      IS_FAILED=$((IS_FAILED + 1))
     fi
   done < <(docker logs -f "${CONTAINER_ID}" 2>&1)
+
+  if [[ "${IS_FAILED}" == 0 ]]; then
+    return 0
+  else
+    return 1
+  fi
 }
 
 run_tests() {
@@ -95,7 +113,11 @@ run_tests() {
   # TODO: bats suite
 
   local HTTP_STATUS_CODE
-  HTTP_STATUS_CODE=$(curl -o /dev/null --silent --head --write-out '%{http_code}\n' localhost:${PORT})
+  HTTP_STATUS_CODE=$(curl -o /dev/null \
+    --silent \
+    --head \
+    --write-out '%{http_code}\n' \
+    localhost:${PORT})
 
   if [[ "${HTTP_STATUS_CODE}" != 403 ]]; then
     error "Expected 403 from UI. Got ${HTTP_STATUS_CODE}"

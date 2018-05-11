@@ -20,18 +20,11 @@ CONTAINER_NAME := $(REGISTRY)/$(NAME):$(CONTAINER_TAG)
 VIRTUAL_HOST ?= "jenkins.ctlplane.io"
 LETSENCRYPT_EMAIL ?= "sublimino@gmail.com"
 
-
-JENKINS_HOME_MOUNT_DIR := "$(JENKINS_HOME_MOUNT_DIR)"
-ifeq ($(JENKINS_HOME_MOUNT_DIR),"")
-  JENKINS_HOME_MOUNT_DIR := "/mnt/jenkins_home/"
-endif
-JENKINS_TESTING_REPO_MOUNT_DIR := "$(JENKINS_TESTING_REPO_MOUNT_DIR)"
-ifeq ($(JENKINS_TESTING_REPO_MOUNT_DIR),"")
-  JENKINS_TESTING_REPO_MOUNT_DIR := "$${HOME}/src/"
-endif
-JENKINS_DSL_OVERRIDE := ""
+JENKINS_HOME_MOUNT_DIR ?= "/mnt/jenkins_home/"
+JENKINS_TESTING_REPO_MOUNT_DIR ?= "$${HOME}/src/"
 # e.g. "file:///mnt/test-repo/some-repo"
-JENKINS_LOCAL_JOB_OVERRIDE := ""
+JENKINS_LOCAL_JOB_OVERRIDE ?= ""
+JENKINS_DSL_OVERRIDE ?= ""
 
 export NAME REGISTRY BUILD_DATE GIT_MESSAGE GIT_SHA GIT_TAG CONTAINER_TAG CONTAINER_NAME
 
@@ -82,6 +75,7 @@ test-run: ## runs the last built docker image with ephemeral storage
 				| xargs --no-run-if-empty docker kill; \
 	fi
 	rm -f /tmp/jenkins-test.cid || true
+	echo "Target port is localhost:$(TEST_HTTP_PORT)"
 	docker run \
 		--name jenkins-test \
 		-d \
@@ -129,9 +123,9 @@ run-prod: run-prod-nginx ## runs production build with nginx TLS
 		-e VIRTUAL_PORT="8080" \
 		-e VIRTUAL_HOST="$(VIRTUAL_HOST)" \
 		-e LETSENCRYPT_HOST="$(VIRTUAL_HOST)" \
-    -e LETSENCRYPT_EMAIL="$(LETSENCRYPT_EMAIL)" \
-    -e LETSENCRYPT_TEST='false' \
-    --expose 8080 \
+		-e LETSENCRYPT_EMAIL="$(LETSENCRYPT_EMAIL)" \
+		-e LETSENCRYPT_TEST='false' \
+		--expose 8080 \
 		-p 50000:50000 \
 		-v "$(shell pwd)/setup.yml":/usr/share/jenkins/setup.yml \
 		-v "$(shell pwd)/setup-secret.yml":/usr/share/jenkins/setup-secret.yml \
