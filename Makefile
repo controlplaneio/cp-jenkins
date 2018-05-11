@@ -73,7 +73,7 @@ mount-point: ## creates a mount point for the image volume
 	chown $${USER} $(JENKINS_HOME_MOUNT_DIR) -R;
 
 .PHONY: test-run
-test-run: mount-point ## runs the last built docker image with ephemeral storage
+test-run: ## runs the last built docker image with ephemeral storage
 	@echo "+ $@"
 	docker rm --force jenkins || true
 	if [[ -n "$(cat /tmp/jenkins-test.cid)" ]]; then \
@@ -83,6 +83,7 @@ test-run: mount-point ## runs the last built docker image with ephemeral storage
 	fi
 	rm -f /tmp/jenkins-test.cid || true
 	docker run \
+                --name jenkins \
 		-d \
 		--group-add docker \
 		--cidfile /tmp/jenkins-test.cid \
