@@ -25,7 +25,7 @@ $ JENKINS_HOME_MOUNT_DIR=${HOME}/jenkins_home make run
 Then go to `http://localhost:8080` in your browser.
 
 If you don't care about persisting that data then you can use the following,
-which uses a new `/tmp/foo` directory each time.
+which uses a new `/tmp/foo` directory each time, and runs on `TEST_PORT` in the Makefile (default is `8090`).
 
 ```
 $ make test-run
