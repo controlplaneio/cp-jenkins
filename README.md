@@ -11,15 +11,16 @@ $ make build
 ```
 
 Before you can run it you should do a `git-crypt unlock` as there is an encrypted secret.
+If you are not in the git-crypt send your public gpg-key to a person who is and have them add you.
 
 To launch locally, once built:
+
+Make sure `JENKINS_HOME_MOUNT_DIR` exists, and is an absolute path. If you don't
+specify it, it will default to `/mnt/jenkins_home`.
 
 ```
 $ JENKINS_HOME_MOUNT_DIR=${HOME}/jenkins_home make run
 ```
-
-Make sure `JENKINS_HOME_MOUNT_DIR` exists, and is an absolute path. If you don't
-specify it, it will default to `/mnt/jenkins_home`.
 
 Then go to `http://localhost:8080` in your browser.
 
@@ -42,20 +43,22 @@ $ make test-run
 
 ## Local Workflow
 
-To iterate quickly on a Jenkinsfile without having to commit to a remote repostiory, a local directory can be mounted into the Jenkins container.
+To iterate quickly on a Jenkinsfile without having to commit to a remote repostiory, a local directory can be mounted into the Jenkins container. You need to have the repo you are building locally.
 
-1. `make run`
+1. `JENKINS_HOME_MOUNT_DIR=${HOME}/jenkins_home JENKINS_TESTING_REPO_MOUNT_DIR=${HOME}/test-repo make run`
+    1. replace JENKINS_HOME_MOUNT_DIR and JENKINS_TESTING_REPO_MOUNT_DIR as you see fit with the directories you want to mount for the Jenkins home directory and the reposiroty you are building.
     1. this mounts the `JENKINS_TESTING_REPO_MOUNT_DIR` to `/mnt/test-repo`
 1. Log in at [http://localhost:8080](http://localhost:8080)
-1. Disable security in the config file in order to access all the settings, using this
-   command (which you should ONLY USE LOCALLY):
+1. Exec into the running container and disable security in the config file in order to access all the settings. 
+   (you should ONLY DO THIS LOCALLY):
   ```
-  sed -i 's/<useSecurity>true<\/useSecurity>/<useSecurity>false<\/useSecurity>/' config.xml
+  sed -i 's/<useSecurity>true<\/useSecurity>/<useSecurity>false<\/useSecurity>/' /var/jenkins_home/config.xml
   ```
+  You will need to restart the container for the new config to take place.
 1. create a new pipeline job (or whatever you're testing)
-    1. set the path to `file:///mnt/test-repo` (or a subdirectory thereof)
-    1. disable shallow checkout
-    1. set to build on all branches
+    1. set the path to `file:///mnt/test-repo` (or a subdirectory thereof). If you are building a pipeline job, you will need to set Pipeline > Definition to "Pipeline script from SCM" and specify the path in "Repository URL", e.g file:///mnt/test-repo/my-repo/
+    1. untick "Lightweight checkout"
+ 
 1. trigger a build of the new job
 
 In the repo under test:
