@@ -21,7 +21,6 @@ pipeline {
         timeout(time: 15, unit: 'MINUTES')
         retry(1)
         timestamps()
-        disableConcurrentBuilds()
       }
 
       steps {
