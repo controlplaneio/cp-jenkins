@@ -33,6 +33,11 @@ parser.add_argument('--secrets-dir', '-d', dest='secrets_dir',
 
 args = parser.parse_args()
 
+def is_secrets_dir_populated(secrets = None):
+    if secrets is None:
+        secrets = Secrets(secrets_dir).get()
+
+    return len(secrets.keys()) > 0
 
 def main():
     parse_args()
@@ -40,7 +45,7 @@ def main():
 
     total_secrets = 0
 
-    if len(secrets.keys()) == 0:
+    if not is_secrets_dir_populated(secrets):
         logging.error("No secrets found in {}".format(secrets_dir))
         sys.exit(1)
 
@@ -125,15 +130,20 @@ def main():
 def parse_args():
     global admin_user, api_token, url_base, secrets_dir
 
+    if args.secrets_dir is None:
+        secrets_dir = raw_input("Local YAML secrets directory: ")
+    else:
+        secrets_dir = args.secrets_dir
+
+    if not is_secrets_dir_populated():
+        logging.error("No secrets found in {}".format(secrets_dir))
+        sys.exit(1)
+
     if args.server is None:
         url_base = raw_input("Jenkins server (incl. protocol): ")
     else:
         url_base = args.server
 
-    if args.secrets_dir is None:
-        secrets_dir = raw_input("Local YAML secrets directory: ")
-    else:
-        secrets_dir = args.secrets_dir
 
     if args.username is None:
         admin_user = raw_input("Jenkins admin username: ")
