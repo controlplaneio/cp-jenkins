@@ -43,33 +43,40 @@ $ make test-run
 
 ## Local Workflow
 
-To iterate quickly on a Jenkinsfile without having to commit to a remote repostiory, a local directory can be mounted into the Jenkins container. You need to have the repo you are building locally.
+Building in a local Jenkins instance avoids the long feedback loop associated with remote Jenkins builds. It's particuarly useful for Jenkinsfile and Job DSL development.
+
+1. checkout a git repo to your host machine (laptop, etc)
+1. mount the git repo from your host to the local Jenkins container at startup
+1. make a commit to your local git repo (Jenkins will alway build from the last commit)
+1. trigger a build job in the local Jenkins
+
+### Steps
 
 1. `JENKINS_HOME_MOUNT_DIR=${HOME}/jenkins_home JENKINS_TESTING_REPO_MOUNT_DIR=${HOME}/test-repo make run`
-    1. replace JENKINS_HOME_MOUNT_DIR and JENKINS_TESTING_REPO_MOUNT_DIR as you see fit with the directories you want to mount for the Jenkins home directory and the reposiroty you are building.
+    1. replace `JENKINS_HOME_MOUNT_DIR` and `JENKINS_TESTING_REPO_MOUNT_DIR` with the directories you want to mount for the Jenkins home directory and the repository you are building.
     1. this mounts the `JENKINS_TESTING_REPO_MOUNT_DIR` to `/mnt/test-repo`
-1. Log in at [http://localhost:8080](http://localhost:8080)
-1. Exec into the running container and disable security in the config file in order to access all the settings. 
+1. Log in at [http://localhost:8080](http://localhost:8080) (or `TEST_PORT` if running `make test-run`, default `8090`)
+1. Disable security in the UI, or exec into the running container and disable security in the config file in order to access all the settings. 
    (you should ONLY DO THIS LOCALLY):
   ```
   sed -i 's/<useSecurity>true<\/useSecurity>/<useSecurity>false<\/useSecurity>/' /var/jenkins_home/config.xml
   ```
   You will need to restart the container for the new config to take place.
 1. create a new pipeline job (or whatever you're testing)
-    1. set the path to `file:///mnt/test-repo` (or a subdirectory thereof). If you are building a pipeline job, you will need to set Pipeline > Definition to "Pipeline script from SCM" and specify the path in "Repository URL", e.g file:///mnt/test-repo/my-repo/
+    1. set the path to `file:///mnt/test-repo` (or a subdirectory thereof). If you are building a pipeline job, you will need to set `Pipeline > Definition` to "Pipeline script from SCM" and specify the path in "Repository URL", e.g file:///mnt/test-repo/my-repo/
     1. untick "Lightweight checkout"
  
-1. trigger a build of the new job
-
-In the repo under test:
-
-1. `git branch jenkinsfile && git checkout jenkinsfile`
-1. Update the repos, then
-1. `git add . && git commit -m "Auto commit $(date)"`
-
+1. trigger a build of the new job. In the repo under test, switch to a new branch to commit small chunks to test in Jenkins. These commits should be squashed or rebased onto another branch when complete:
+  1. `git branch local-jenkins-dev && git checkout local-jenkins-dev`
+  1. Make changes to the code in the repo
+  1. `git add . && git commit -m "Auto commit $(date)"`
+  1. Trigger a Jenkins build (see next section, or do manually through UI)
+  1. Iterate
+  1. When complete, rebase changes onto another branch for commit or PR
+  
 ## Trigger Build via API
 
-Optionally, trigger Jenkins via its API (you may need to retrieve your API token):
+Instead of triggering builds through the UI, the Jenkins can be used (unless security is off you will need to retrieve your API token)
 
 ```bash
 jenkins-trigger ()
