@@ -56,7 +56,7 @@ Building in a local Jenkins instance avoids the long feedback loop associated wi
     1. add the directories you want to mount for the Jenkins home directory and the repository you are building to the environment variables `JENKINS_HOME_MOUNT_DIR` and `JENKINS_TESTING_REPO_MOUNT_DIR`.
     1. this mounts the `JENKINS_TESTING_REPO_MOUNT_DIR` to `/mnt/test-repo`
 1. Log in at [http://localhost:8080](http://localhost:8080) (or `TEST_PORT` if running `make test-run`, default `8090`)
-1. Disable security in the UI, or exec into the running container and disable security in the config file in order to access all the settings. 
+1. Exec into the running container and disable security in the config file in order to access all the settings. 
    (you should ONLY DO THIS LOCALLY):
   ```
   sed -i 's/<useSecurity>true<\/useSecurity>/<useSecurity>false<\/useSecurity>/' /var/jenkins_home/config.xml
