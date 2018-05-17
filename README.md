@@ -56,7 +56,7 @@ Building in a local Jenkins instance avoids the long feedback loop associated wi
     1. add the directories you want to mount for the Jenkins home directory and the repository you are building to the environment variables `JENKINS_HOME_MOUNT_DIR` and `JENKINS_TESTING_REPO_MOUNT_DIR`.
     1. this mounts the `JENKINS_TESTING_REPO_MOUNT_DIR` to `/mnt/test-repo`
 1. Log in at [http://localhost:8080](http://localhost:8080) (or `TEST_PORT` if running `make test-run`, default `8090`)
-1. Exec into the running container and disable security in the config file in order to access all the settings. 
+1. Exec into the running container and disable security in the config file in order to access all the settings.
    (you should ONLY DO THIS LOCALLY):
   ```
   sed -i 's/<useSecurity>true<\/useSecurity>/<useSecurity>false<\/useSecurity>/' /var/jenkins_home/config.xml
@@ -65,7 +65,7 @@ Building in a local Jenkins instance avoids the long feedback loop associated wi
 1. create a new pipeline job (or whatever you're testing)
     1. set the path to `file:///mnt/test-repo` (or a subdirectory thereof). If you are building a pipeline job, you will need to set `Pipeline > Definition` to "Pipeline script from SCM" and specify the path in "Repository URL", e.g file:///mnt/test-repo/my-repo/
     1. untick "Lightweight checkout"
- 
+
 1. trigger a build of the new job. In the repo under test, switch to a new branch to commit small chunks to test in Jenkins. These commits should be squashed or rebased onto another branch when complete:
   1. `git branch local-jenkins-dev && git checkout local-jenkins-dev`
   1. Make changes to the code in the repo
@@ -73,7 +73,9 @@ Building in a local Jenkins instance avoids the long feedback loop associated wi
   1. Trigger a Jenkins build (see next section, or do manually through UI)
   1. Iterate
   1. When complete, rebase changes onto another branch for commit or PR
-  
+
+**Despite pointing to a filesystem, Jenkins does not treat these repos as files!! The pipline uses the latest commit on the branch and ignores un/staged changes! Hence, if you have not commited your changes, they will not be noticed by Jenkins!!**
+
 ## Trigger Build via API
 
 Instead of triggering builds through the UI, the Jenkins can be used (unless security is off you will need to retrieve your API token)
