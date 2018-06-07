@@ -59,9 +59,12 @@ Building in a local Jenkins instance avoids the long feedback loop associated wi
 1. Exec into the running container and disable security in the config file in order to access all the settings.
    (you should ONLY DO THIS LOCALLY):
   ```
-  sed -i 's/<useSecurity>true<\/useSecurity>/<useSecurity>false<\/useSecurity>/' /var/jenkins_home/config.xml
+  $ docker exec -it CONTAINER_ID su jenkins -c bash
+  jenkins@CONTAINER_ID:/$ sed -i 's/<useSecurity>true<\/useSecurity>/<useSecurity>false<\/useSecurity>/' /var/jenkins_home/config.xml
+  jenkins@CONTAINER_ID:/$ exit
+  $ docker container restart CONTAINER_ID
   ```
-  You will need to restart the container for the new config to take place.
+  You will need to restart the container for the new config to take effect.
 1. create a new pipeline job (or whatever you're testing)
     1. set the path to `file:///mnt/test-repo` (or a subdirectory thereof). If you are building a pipeline job, you will need to set `Pipeline > Definition` to "Pipeline script from SCM" and specify the path in "Repository URL", e.g file:///mnt/test-repo/my-repo/
     1. untick "Lightweight checkout"
