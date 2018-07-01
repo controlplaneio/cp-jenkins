@@ -1,19 +1,6 @@
 ---
 # Variables that need to be defined are shown in this format: {{variable_name}}
 
-admin:
-  username: &admin_user sublimino
-  password: password
-  email: &admin_email jenkins@control-plane.io
-
-credentials:
-  - global:
-      -
-        username: sublimino
-        password: password
-        id: github-api-sublimino
-        description: "Added during bootstrap"
-
 executors:
   master: 5
 
@@ -22,17 +9,6 @@ git:
     name: *admin_user
     email: *admin_email
     scopes: read:org,user:email
-
-github:
-  org_name: controlplaneio
-  oauth:
-    client_id: 9a0af96324df63908017
-    client_secret: 6a4154f6151ac0e4007fa37064e73f4b0b4d0369
-
-mailer:
-  smtp_email: *admin_email
-  smtp_password: password
-  smtp_host:
 
 jnlp_port: 5000
 
