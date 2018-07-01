@@ -58,9 +58,8 @@ main() {
 
   run_tests
 
-  success "Done"
+  success "Test complete"
 }
-
 
 build_jenkins() {
   make build
@@ -82,15 +81,16 @@ cleanup() {
 
 wait_until_initialised() {
   local IS_FAILED=0
+  local START_TIME="${SECONDS}"
   while read LINE; do
-    if echo "${LINE}" | grep -E "${READY_LOG_TEXT}"; then
+    if echo "${LINE}" | grep --color=always -E "${READY_LOG_TEXT}"; then
       success "Jenkins is ready"
       break
-    elif echo "${LINE}" | grep -E "${FAILED_LOG_TEXT}"; then
+    elif echo "${LINE}" | grep --color=always -E "${FAILED_LOG_TEXT}"; then
       warning "Failed to start Jenkins, failing"
       IS_FAILED=$((IS_FAILED + 1))
     else
-      echo -e "${LINE}"
+      echo -e "${LINE}" | grep --color=always -E '^|INFO: !!!.*' || true
     fi
 
     if [[ "${IS_FAILED}" -gt 30 ]]; then
@@ -98,6 +98,10 @@ wait_until_initialised() {
       break
     elif [[ "${IS_FAILED}" -gt 0 ]]; then
       IS_FAILED=$((IS_FAILED + 1))
+    fi
+
+    if [[ $(( SECONDS - START_TIME )) -gt 100 ]]; then
+      error "Timeout reached, test took over 100s"
     fi
   done < <(docker logs -f "${CONTAINER_ID}" 2>&1)
 

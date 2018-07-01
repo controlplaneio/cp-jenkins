@@ -36,12 +36,21 @@ env = System.getenv()
 JENKINS_SETUP_YAML = env['JENKINS_SETUP_YAML'] ?: "${env['JENKINS_CONFIG_HOME']}/setup.yml"
 JENKINS_SECRET_YAML = env['JENKINS_SETUP_YAML'] ?: "${env['JENKINS_CONFIG_HOME']}/setup-secret.yml"
 Logger logger = Logger.getLogger('setup-master-config.groovy')
-def config = new Yaml().load(new File(JENKINS_SETUP_YAML).text)
-def secrets = new Yaml().load(new File(JENKINS_SECRET_YAML).text)
-
-config = config + secrets
 
 def firstRun = true
+def config
+def secrets
+
+try {
+  config = new Yaml().load(new File(JENKINS_SETUP_YAML).text)
+  secrets = new Yaml().load(new File(JENKINS_SECRET_YAML).text)
+} catch (Exception e) {
+  logger.info('!!! Failed to parse YAML')
+  logger.info('!!! Are configuration files encrypted?')
+  throw e
+}
+
+config = config + secrets
 
 // setup Time Zone
 Thread.start {

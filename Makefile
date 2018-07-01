@@ -72,10 +72,11 @@ test-run: ## runs the last built docker image with ephemeral storage
 	if [[ -n "$(cat /tmp/jenkins-test.cid)" ]]; then \
 		docker ps -q \
 			--filter "id=$(cat /tmp/jenkins-test.cid)" \
-				| xargs --no-run-if-empty docker kill; \
+		| xargs --no-run-if-empty docker kill; \
 	fi
 	rm -f /tmp/jenkins-test.cid || true
 	echo "Target port is localhost:$(TEST_HTTP_PORT)"
+
 	docker run \
 		--name jenkins-test \
 		-d \
@@ -87,7 +88,7 @@ test-run: ## runs the last built docker image with ephemeral storage
 		-p $(TEST_HTTP_PORT):8080 \
 		-p 50090:50000 \
 		-v "$(shell pwd)/setup.yml":/usr/share/jenkins/setup.yml \
-		-v "$(shell pwd)/setup-secret.yml":/usr/share/jenkins/setup-secret.yml \
+		-v "$(shell pwd)/setup-secret-example.yml":/usr/share/jenkins/setup-secret.yml \
 		-v "$(JENKINS_TESTING_REPO_MOUNT_DIR)":/mnt/test-repo \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		"${CONTAINER_NAME}"
