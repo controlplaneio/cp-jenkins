@@ -100,8 +100,8 @@ wait_until_initialised() {
       IS_FAILED=$((IS_FAILED + 1))
     fi
 
-    if [[ $(( SECONDS - START_TIME )) -gt 100 ]]; then
-      error "Timeout reached, test took over 100s"
+    if [[ $(( SECONDS - START_TIME )) -gt 200 ]]; then
+      error "Timeout reached, test took over 200s"
     fi
   done < <(docker logs -f "${CONTAINER_ID}" 2>&1)
 
