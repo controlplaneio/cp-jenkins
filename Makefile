@@ -85,13 +85,22 @@ test-run: ## runs the last built docker image with ephemeral storage
 		-e GITHUB_OAUTH=test \
 		-e JENKINS_DSL_OVERRIDE=$(JENKINS_DSL_OVERRIDE) \
 		-e JENKINS_LOCAL_JOB_OVERRIDE=$(JENKINS_LOCAL_JOB_OVERRIDE) \
+		-e JENKINS_SETUP_YAML="/usr/share/jenkins/config/setup.yml" \
 		-p $(TEST_HTTP_PORT):8080 \
 		-p 50090:50000 \
-		-v "$(shell pwd)/setup.yml":/usr/share/jenkins/setup.yml \
-		-v "$(shell pwd)/setup-secret-example.yml":/usr/share/jenkins/setup-secret.yml \
+		--tmpfs /usr/share/jenkins/config/ \
 		-v "$(JENKINS_TESTING_REPO_MOUNT_DIR)":/mnt/test-repo \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		"${CONTAINER_NAME}"
+
+	COUNT=0; \
+	until [[ "`/usr/bin/docker inspect -f {{.State.Running}} jenkins-test`" == "true" ]]; do \
+			sleep 0.5; \
+			if [[ $$((COUNT++)) -gt 10 ]]; then echo 'Container did not start'; exit 1; fi; \
+	done;
+
+	(cat "$(shell pwd)/setup.yml"; echo; cat "$(shell pwd)/setup-secret-example.yml") \
+			| docker exec -i jenkins-test sh -c "cat >/usr/share/jenkins/config/setup.yml"
 
 .PHONY: run
 run: mount-point ## runs the last built docker image with persistent storage

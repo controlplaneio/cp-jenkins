@@ -157,3 +157,4 @@ git reset --soft \
 
 - https://github.com/forj-oss/jenkins-install-inits
 - https://github.com/jenkins-x/jx
+- https://github.com/samrocketman/jenkins-bootstrap-shared

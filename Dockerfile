@@ -46,7 +46,10 @@ RUN \
 
 COPY known_hosts /opt/known_hosts
 RUN \
-  mkdir -p "${JENKINS_HOME}/.ssh/" || true \
+  mkdir -p \
+    "${JENKINS_HOME}/.ssh/" \
+    "${JENKINS_HOME}/config/" \
+  || true \
   # known_hosts is hashed with a per-user key
   && su jenkins -c "ssh-keyscan -H github.com" >> ${JENKINS_HOME}/.ssh/known_hosts \
   && chown jenkins:jenkins "${JENKINS_HOME}" -R

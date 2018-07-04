@@ -4,6 +4,7 @@ antisamy-markup-formatter:latest
 ant:latest
 apache-httpcomponents-client-4-api:latest
 authentication-tokens:latest
+blueocean:latest
 bouncycastle-api:latest
 branch-api:latest
 build-timeout:latest

@@ -1,20 +1,12 @@
----
-# Variables that need to be defined are shown in this format: {{variable_name}}
-
 executors:
   master: 5
-
-git:
-  config:
-    name: *admin_user
-    email: *admin_email
-    scopes: read:org,user:email
 
 jnlp_port: 5000
 
 set_master_kill_switch: true
-web_port: 8080    # TODO(ajm) change to 443
-web_proto: http   # TODO(ajm) change to https
+
+web_port: 8080
+web_proto: http
 
 seed_jobdsl: |
   freeStyleJob('maintenance-apply-dsl') {
@@ -75,3 +67,5 @@ seed_jobdsl: |
           wsCleanup()
       }
   }
+
+

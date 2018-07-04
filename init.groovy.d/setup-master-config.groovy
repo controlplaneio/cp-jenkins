@@ -34,19 +34,23 @@ import javaposse.jobdsl.plugin.JenkinsJobManagement
 
 env = System.getenv()
 JENKINS_SETUP_YAML = env['JENKINS_SETUP_YAML'] ?: "${env['JENKINS_CONFIG_HOME']}/setup.yml"
-JENKINS_SECRET_YAML = env['JENKINS_SETUP_YAML'] ?: "${env['JENKINS_CONFIG_HOME']}/setup-secret.yml"
+JENKINS_SECRET_YAML = env['JENKINS_SECRET_YAML'] ?: "${env['JENKINS_CONFIG_HOME']}/setup-secret.yml"
 Logger logger = Logger.getLogger('setup-master-config.groovy')
 
 def firstRun = true
 def config
-def secrets
+def secrets = {}
 
 try {
   config = new Yaml().load(new File(JENKINS_SETUP_YAML).text)
-  secrets = new Yaml().load(new File(JENKINS_SECRET_YAML).text)
+
+  def secretsFile = new File(JENKINS_SECRET_YAML)
+  if (secretsFile.exists()) {
+    secrets = new Yaml().load(secretsFile.text)
+  }
 } catch (Exception e) {
   logger.info('!!! Failed to parse YAML')
-  logger.info('!!! Are configuration files encrypted?')
+  logger.info('!!! Is configuration file encrypted?')
   throw e
 }
 
