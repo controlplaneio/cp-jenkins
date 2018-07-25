@@ -146,6 +146,20 @@ git reset --soft \
   && git commit
 ```
 
+# Migrating between hosts
+
+1. Stop the Jenkins container
+1. Compress the data directories
+  ```
+  tar czvf mount-jenkins.tar.gz /mnt/jenkins_home/ /mnt/certs/
+  ```
+1. Copy the file to the new host (either via ssh ForwardAgent [which should only be [enabled when required](https://heipei.github.io/2015/02/26/SSH-Agent-Forwarding-considered-harmful/) or bounced through a secure intermediate host/workstation)
+1. Untar the tarball into the same directories on the new host
+1. Run the Makefile from this repo on the new host
+  ```
+  make run-prod
+  ```
+
 # Prior Art
 
 - https://github.com/cfpb/jenkins-automation
