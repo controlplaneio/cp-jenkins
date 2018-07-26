@@ -12,3 +12,4 @@ build-history-metrics:latest
 spotinst:latest
 hashicorp-vault-plugin:latest
 jdk-tool:latest
+artifactory:latest

@@ -16,6 +16,7 @@ endif
 
 CONTAINER_TAG ?= $(GIT_TAG)
 CONTAINER_NAME := $(REGISTRY)/$(NAME):$(CONTAINER_TAG)
+CONTAINER_NAME_LATEST := $(REGISTRY)/$(NAME):latest
 
 VIRTUAL_HOST ?= "jenkins.ctlplane.io"
 LETSENCRYPT_EMAIL ?= "sublimino@gmail.com"
@@ -52,11 +53,18 @@ secrets-test: ## test secrets
 build: pull-base-image ## builds a Docker image
 	@echo "+ $@"
 	docker build --tag "${CONTAINER_NAME}" .
+	docker tag "${CONTAINER_NAME}" "${CONTAINER_NAME_LATEST}"
 
 .PHONY: pull-base-image
 pull-base-image: ## pulls a Docker base image
 	@echo "+ $@"
 	grep FROM Dockerfile | awk '{print $$2}' | xargs -n 1 docker pull
+
+.PHONY: push
+push: ## pushes a docker image
+	@echo "+ $@"
+	docker push "${CONTAINER_NAME}"
+	docker push "${CONTAINER_NAME_LATEST}"
 
 .PHONY: mount-point
 mount-point: ## creates a mount point for the image volume

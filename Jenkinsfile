@@ -2,7 +2,7 @@ pipeline {
   agent none
 
   environment {
-    CONTAINER_TAG = 'latest'
+    CONTAINER_TAG = "${env.BUILD_NUMBER}-${env.GIT_HASH}"
   }
 
   stages {
@@ -11,9 +11,9 @@ pipeline {
         docker {
           image 'docker.io/controlplane/gcloud-sdk:latest'
           args '-v /var/run/docker.sock:/var/run/docker.sock ' +
-            '--user=root ' +
-            '--cap-drop=ALL ' +
-            '--cap-add=DAC_OVERRIDE'
+               '--user=root ' +
+               '--cap-drop=ALL ' +
+               '--cap-add=DAC_OVERRIDE'
         }
       }
 
@@ -27,6 +27,32 @@ pipeline {
         ansiColor('xterm') {
           sh 'make pull-base-image'
           sh 'make test CONTAINER_TAG="${CONTAINER_TAG}"'
+        }
+      }
+    }
+  }
+
+  stages {
+    stage('Push') {
+      agent {
+        docker {
+          image 'docker.io/controlplane/gcloud-sdk:latest'
+          args '-v /var/run/docker.sock:/var/run/docker.sock ' +
+               '--user=root ' +
+               '--cap-drop=ALL ' +
+               '--cap-add=DAC_OVERRIDE'
+        }
+      }
+
+      options {
+        timeout(time: 15, unit: 'MINUTES')
+        retry(1)
+        timestamps()
+      }
+
+      steps {
+        ansiColor('xterm') {
+          sh 'make push CONTAINER_TAG="${CONTAINER_TAG}"'
         }
       }
     }
