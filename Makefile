@@ -97,7 +97,7 @@ test-run: ## runs the last built docker image with ephemeral storage
 		"${CONTAINER_NAME}"
 
 	COUNT=0; \
-	until [[ "$(docker inspect -f {{.State.Running}} jenkins-test)" == "true" ]]; do \
+	until [[ "$$(docker inspect -f {{.State.Running}} jenkins-test)" == "true" ]]; do \
 			sleep 0.5; \
 			if [[ $$((COUNT++)) -gt 10 ]]; then echo 'Container did not start'; exit 1; fi; \
 	done;
