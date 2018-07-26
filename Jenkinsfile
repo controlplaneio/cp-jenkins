@@ -32,28 +32,26 @@ pipeline {
     }
   }
 
-  stages {
-    stage('Push') {
-      agent {
-        docker {
-          image 'docker.io/controlplane/gcloud-sdk:latest'
-          args '-v /var/run/docker.sock:/var/run/docker.sock ' +
-               '--user=root ' +
-               '--cap-drop=ALL ' +
-               '--cap-add=DAC_OVERRIDE'
-        }
+  stage('Push') {
+    agent {
+      docker {
+        image 'docker.io/controlplane/gcloud-sdk:latest'
+        args '-v /var/run/docker.sock:/var/run/docker.sock ' +
+             '--user=root ' +
+             '--cap-drop=ALL ' +
+             '--cap-add=DAC_OVERRIDE'
       }
+    }
 
-      options {
-        timeout(time: 15, unit: 'MINUTES')
-        retry(1)
-        timestamps()
-      }
+    options {
+      timeout(time: 15, unit: 'MINUTES')
+      retry(1)
+      timestamps()
+    }
 
-      steps {
-        ansiColor('xterm') {
-          sh 'make push CONTAINER_TAG="${CONTAINER_TAG}"'
-        }
+    steps {
+      ansiColor('xterm') {
+        sh 'make push CONTAINER_TAG="${CONTAINER_TAG}"'
       }
     }
   }
