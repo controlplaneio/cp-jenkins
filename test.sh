@@ -22,6 +22,8 @@ set -o nounset
 # error on clobber
 set -o noclobber
 
+set -x
+
 # user defaults
 DEBUG=0
 
@@ -55,6 +57,8 @@ main() {
   wait_until_initialised
 
   sleep 3
+
+  info "Running tests..."
 
   run_tests
 
@@ -115,13 +119,14 @@ wait_until_initialised() {
 run_tests() {
 
   # TODO: bats suite
+  local HTTP_STATUS_CODE HOST
 
-  local HTTP_STATUS_CODE
+  HOST=$(docker inspect -f {{.NetworkSettings.IPAddress}} jenkins-test)
   HTTP_STATUS_CODE=$(curl -o /dev/null \
     --silent \
     --head \
     --write-out '%{http_code}\n' \
-    localhost:${PORT})
+    ${HOST}:${PORT})
 
   if [[ "${HTTP_STATUS_CODE}" != 403 ]]; then
     error "Expected 403 from UI. Got ${HTTP_STATUS_CODE}"
