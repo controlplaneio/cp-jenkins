@@ -116,17 +116,26 @@ wait_until_initialised() {
   fi
 }
 
+# TODO: bats suite
 run_tests() {
+  local HTTP_STATUS_CODE
+  local HOST
+  local COUNT=0
 
-  # TODO: bats suite
-  local HTTP_STATUS_CODE HOST
+  HOST=$(docker inspect -f "{{.NetworkSettings.IPAddress}}" jenkins-test)
 
-  HOST=$(docker inspect -f {{.NetworkSettings.IPAddress}} jenkins-test)
-  HTTP_STATUS_CODE=$(curl -o /dev/null \
+  while HTTP_STATUS_CODE=$(curl -o /dev/null \
     --silent \
     --head \
     --write-out '%{http_code}\n' \
-    ${HOST}:${PORT})
+    ${HOST}:${PORT} || true); do
+
+      [[ $(( COUNT++ )) -gt 10 ]] && break
+      [[ "${HTTP_STATUS_CODE}" = 403 ]] && break
+
+      printf '.'
+      sleep 1
+  done
 
   if [[ "${HTTP_STATUS_CODE}" != 403 ]]; then
     error "Expected 403 from UI. Got ${HTTP_STATUS_CODE}"
@@ -154,11 +163,6 @@ parse_arguments() {
         shift
         not_empty_or_usage "${1:-}"
         DESCRIPTION="${1}"
-        ;;
-      -p | --port)
-        shift
-        not_empty_or_usage "${1:-}"
-        PORT="${1}"
         ;;
       -t | --type)
         shift

@@ -181,7 +181,7 @@ export: ## package jenkins up for transport
 
 .PHONY: test
 test: ## build and test image
-	./test.sh --port $(TEST_HTTP_PORT)
+	./test.sh
 
 .PHONY: clean
 clean: ## remove temporary files from test-run
