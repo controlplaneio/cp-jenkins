@@ -67,5 +67,3 @@ seed_jobdsl: |
           wsCleanup()
       }
   }
-
-

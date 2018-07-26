@@ -33,44 +33,45 @@ import javaposse.jobdsl.dsl.DslScriptLoader
 import javaposse.jobdsl.plugin.JenkinsJobManagement
 
 env = System.getenv()
+logger = Logger.getLogger('setup.groovy')
+secrets = {}
+firstRun = true
+config = null
+
 JENKINS_SETUP_YAML = env['JENKINS_SETUP_YAML'] ?: "${env['JENKINS_CONFIG_HOME']}/setup.yml"
 JENKINS_SECRET_YAML = env['JENKINS_SECRET_YAML'] ?: "${env['JENKINS_CONFIG_HOME']}/setup-secret.yml"
-Logger logger = Logger.getLogger('setup-master-config.groovy')
 
-logger.info('--> Starting config script')
-
-def firstRun = true
-def config
-def secrets = {}
-
-def main = {
-  logger.info('--> Initialiasing configuration')
-
-  loadSecrets
-  configure
+def log(message) {
+  message = "--> ${message}"
+  logger.info(message)
+  println(message)
 }
 
-def loadSecrets = {
+log('Starting config script')
 
+def main() {
+  log('Initialiasing configuration')
+
+  loadSecrets()
+  configure()
+}
+
+def loadSecrets() {
+  log('Loading secrets')
   try {
     config = new Yaml().load(new File(JENKINS_SETUP_YAML).text)
-
-    def secretsFile = new File(JENKINS_SECRET_YAML)
-    if (secretsFile.exists()) {
-      secrets = new Yaml().load(secretsFile.text)
-    }
+    secrets = new Yaml().load(new File(JENKINS_SECRET_YAML).text)
   } catch (Exception e) {
-    logger.info('!!! Failed to parse YAML')
-    logger.info('!!! Is configuration file encrypted?')
+    log('!!! Failed to parse YAML')
+    log('!!! Is configuration file encrypted?')
     throw e
   }
 
   config = config + secrets
 }
 
-def configure = {
-
-  logger.info('--> Starting Jenkins configuration')
+def configure() {
+  log('Starting Jenkins configuration')
 
 // setup Time Zone
   Thread.start {
@@ -106,7 +107,7 @@ def configure = {
       if (!descriptor.equals(Jenkins.instance.getDescriptor(PLUGIN))) {
         descriptor.save()
       }
-      logger.info('-->Configured Git SCM')
+      log('Configured Git SCM')
     }
   }
 
@@ -130,26 +131,26 @@ def configure = {
     if (!descriptorLocation.equals(Jenkins.instance.getDescriptor(PLUGIN_LOCATION))) {
       descriptorLocation.save()
     }
-    logger.info('-->Configured Admin Address')
+    log('Configured Admin Address')
 
 
     if (!firstRun) {
-      logger.info('-->NOT FIRST RUN - done')
+      log('NOT FIRST RUN - done')
 
 
     } else {
-      logger.info('-->FIRST RUN - configuring auth')
+      log('FIRST RUN - configuring auth')
 
       // setup seed job
       WORKSPACE_BASE = "${env['JENKINS_HOME']}/workspace"
       def workspace = new File("${WORKSPACE_BASE}")
 
       def seedJobDsl = config.seed_jobdsl
-      logger.info(seedJobDsl)
+      log(seedJobDsl)
 
       def jobManagement = new JenkinsJobManagement(System.out, [:], workspace)
       new DslScriptLoader(jobManagement).runScript(seedJobDsl)
-      logger.info('-->Created seed job')
+      log('Created seed job')
 
       sleep 1000
 
@@ -166,13 +167,13 @@ def configure = {
 //          credentials_store.addCredentials(Domain.global(), credentials)
 //        }
 //      }
-//      logger.info('-->Configured Global Credentials')
+//      log('Configured Global Credentials')
 //    }
 
       // setup master ssh key
       Thread.start {
         def globalConfigName = config.git.config.name ?: 'jenkins-bot'
-        logger.info("starting ssh key load for ${globalConfigName}")
+        log("starting ssh key load for ${globalConfigName}")
 
         def JENKINS_SSH_KEY = env['JENKINS_HOME'] + '/.ssh/id_rsa'
         if (Jenkins.instance.pluginManager.activePlugins.find { it.shortName == 'ssh-credentials' } != null) {
@@ -195,15 +196,15 @@ def configure = {
             )
 
             credentials_store.addCredentials(Domain.global(), credentials)
-            logger.info("Configured SSH Credentials from ${JENKINS_SSH_KEY} for ${globalConfigName}")
+            log("Configured SSH Credentials from ${JENKINS_SSH_KEY} for ${globalConfigName}")
           } catch (Exception e) {
-            logger.info("No ssh key found at ${JENKINS_SSH_KEY} for ${globalConfigName}")
+            log("No ssh key found at ${JENKINS_SSH_KEY} for ${globalConfigName}")
           }
 //        } else {
-//          logger.info("No ssh key found at ${JENKINS_SSH_KEY} for ${globalConfigName}")
+//          log("No ssh key found at ${JENKINS_SSH_KEY} for ${globalConfigName}")
 //        }
         } else {
-          logger.info("ssh-credentials plugin not found")
+          log("ssh-credentials plugin not found")
         }
       }
 
@@ -242,7 +243,7 @@ def configure = {
             JENKINS.setAuthorizationStrategy(strategy)
             JENKINS.save()
           }
-          logger.info('-->Configured AuthorizationStrategy')
+          log('Configured AuthorizationStrategy')
         }
       }
 
@@ -263,7 +264,7 @@ def configure = {
 
         descriptorMailer.save()
 
-        logger.info('-->Configured Mailer')
+        log('Configured Mailer')
       }
 
       // setup master-slave security
@@ -281,16 +282,16 @@ def configure = {
 
               instance.getInjector().getInstance(jenkins.security.s2m.AdminWhitelistRule.class).setMasterKillSwitch(disabled)
           }
-          logger.info('-->Enabled Master -> Slave Security')
+          log('Enabled Master -> Slave Security')
         }
       }
 
       Thread.start {
-        logger.info('--> setting agent port for jnlp')
+        log('setting agent port for jnlp')
         def env = System.getenv()
         int port = config.jnlp_port ?: env['JENKINS_SLAVE_AGENT_PORT'].toInteger() ?: 5001
         Jenkins.instance.setSlaveAgentPort(port)
-        logger.info('--> setting agent port for jnlp... done')
+        log('setting agent port for jnlp... done')
       }
 
       Thread.start {
@@ -351,18 +352,18 @@ def configure = {
           //check for equality, no need to modify the runtime if no settings changed
           if (!github_authorization.equals(Jenkins.instance.getAuthorizationStrategy())) {
             Jenkins.instance.setAuthorizationStrategy(github_authorization)
-            logger.info('-->Saving Github authorisation strategy')
+            log('Saving Github authorisation strategy')
 
             Jenkins.instance.save()
           }
         } else {
-          logger.info('-->Github oauth plugin not found')
+          log('Github oauth plugin not found')
         }
 
-        logger.info 'Jenkins provided DSL script setup complete'
+        log 'Jenkins provided DSL script setup complete'
       }
     }
   }
 }
 
-main
+main()
