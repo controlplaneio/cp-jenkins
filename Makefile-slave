@@ -16,7 +16,7 @@ endif
 
 CONTAINER_TAG ?= $(GIT_TAG)
 CONTAINER_NAME := $(REGISTRY)/$(NAME):$(CONTAINER_TAG)
-CONTAINER_NAME_LATEST := $(REGISTRY)/$(NAME):latest
+CONTAINER_SLAVE_NAME := $(REGISTRY)/$(NAME)-slave:$(CONTAINER_TAG)
 
 VIRTUAL_HOST ?= "jenkins.ctlplane.io"
 LETSENCRYPT_EMAIL ?= "sublimino@gmail.com"
@@ -49,22 +49,24 @@ secrets-test: ## test secrets
 	@echo "+ $@"
 	script/test.sh
 
+.PHONY: pull-base-image
+pull-base-image: ## pulls a Docker base image
+	@echo "+ $@"
+	grep "FROM" Dockerfile* | awk '{print $$2}' | xargs -n 1 docker pull
+
 .PHONY: build
 build: pull-base-image ## builds a Docker image
 	@echo "+ $@"
 	docker build --tag "${CONTAINER_NAME}" .
-	docker tag "${CONTAINER_NAME}" "${CONTAINER_NAME_LATEST}"
 
-.PHONY: pull-base-image
-pull-base-image: ## pulls a Docker base image
+build-slave: pull-base-image ## builds a docker image for the slave
 	@echo "+ $@"
-	grep FROM Dockerfile | awk '{print $$2}' | xargs -n 1 docker pull
+	docker build --tag "${CONTAINER_SLAVE_NAME}" --file Dockerfile.slave .
 
-.PHONY: push
-push: ## pushes a docker image
+push: ## push docker images
 	@echo "+ $@"
 	docker push "${CONTAINER_NAME}"
-	docker push "${CONTAINER_NAME_LATEST}"
+	docker push "${CONTAINER_SLAVE_NAME}"
 
 .PHONY: mount-point
 mount-point: ## creates a mount point for the image volume
@@ -76,16 +78,14 @@ mount-point: ## creates a mount point for the image volume
 .PHONY: test-run
 test-run: ## runs the last built docker image with ephemeral storage
 	@echo "+ $@"
-	$(eval JENKINS_SECRET_YAML ?= setup-secret-example.yml)
 	docker rm --force jenkins-test || true
 	if [[ -n "$(cat /tmp/jenkins-test.cid)" ]]; then \
 		docker ps -q \
 			--filter "id=$(cat /tmp/jenkins-test.cid)" \
-		| xargs --no-run-if-empty docker kill; \
+				| xargs --no-run-if-empty docker kill; \
 	fi
 	rm -f /tmp/jenkins-test.cid || true
 	echo "Target port is localhost:$(TEST_HTTP_PORT)"
-
 	docker run \
 		--name jenkins-test \
 		-d \
@@ -94,35 +94,13 @@ test-run: ## runs the last built docker image with ephemeral storage
 		-e GITHUB_OAUTH=test \
 		-e JENKINS_DSL_OVERRIDE=$(JENKINS_DSL_OVERRIDE) \
 		-e JENKINS_LOCAL_JOB_OVERRIDE=$(JENKINS_LOCAL_JOB_OVERRIDE) \
-		-e JENKINS_SETUP_YAML="/usr/share/jenkins/config/setup.yml" \
-		-e JENKINS_SECRET_YAML="/usr/share/jenkins/config/$(JENKINS_SECRET_YAML)" \
 		-p $(TEST_HTTP_PORT):8080 \
 		-p 50090:50000 \
-		--tmpfs /usr/share/jenkins/config/ \
+		-v "$(shell pwd)/setup.yml":/usr/share/jenkins/setup.yml \
+		-v "$(shell pwd)/setup-secret.yml":/usr/share/jenkins/setup-secret.yml \
 		-v "$(JENKINS_TESTING_REPO_MOUNT_DIR)":/mnt/test-repo \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		"${CONTAINER_NAME}"
-
-	COUNT=0; \
-	until [[ "$$(docker inspect -f {{.State.Running}} jenkins-test)" == "true" ]]; do \
-			sleep 0.5; \
-			if [[ $$((COUNT++)) -gt 10 ]]; then echo 'Container did not start'; exit 1; fi; \
-	done;
-
-	cat "$(shell pwd)/setup.yml" \
-  			| docker exec -i jenkins-test sh -c "cat >/usr/share/jenkins/config/setup.yml"
-	cat "$(shell pwd)/$(JENKINS_SECRET_YAML)" \
-				| docker exec -i jenkins-test sh -c "cat >/usr/share/jenkins/config/$(JENKINS_SECRET_YAML)"
-
-.PHONY: test-run-local
-test-run-local: _test-run-local-prep test-run ## runs the last built docker image with ephemeral storage
-	@echo "+ $@"
-
-.PHONY: _test-run-local-prep
-_test-run-local-prep: ## set JENKINS_SECRET_YAML
-	@echo "+ $@"
-	eval JENKINS_SECRET_YAML=$(env if [[ "$$(file setup-secret.yml)" == 'setup-secret.yml: ASCII text' ]]; then \
-	 	echo 'setup-secret.yml'; else; echo 'setup-secret-example.yml'; fi;)
 
 .PHONY: run
 run: mount-point ## runs the last built docker image with persistent storage
@@ -143,6 +121,28 @@ run: mount-point ## runs the last built docker image with persistent storage
 		-v "$(JENKINS_TESTING_REPO_MOUNT_DIR):/mnt/test-repo" \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		"${CONTAINER_NAME}"
+
+.PHONY: run-slave
+run-slave: ## runs a build slave
+	@echo "+ $@"
+	set -x
+	if [[ -z "$(SECRET)" ]]; then
+	  echo "SECRET is empty"
+		exit 1
+	fi
+
+	docker run \
+		--net=host \
+		-v "$(JENKINS_HOME_MOUNT_DIR)":/var/jenkins_home \
+		-v "$(JENKINS_TESTING_REPO_MOUNT_DIR):/mnt/test-repo" \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		${CONTAINER_SLAVE_NAME} \
+		-url https://$(VIRTUAL_HOST):8080 \
+		-workDir=/home/jenkins/agent \
+		$(SECRET) \
+		slave
+
+	# -url http://$$(docker inspect --format="{{.NetworkSettings.IPAddress}}" jenkins):8080 \
 
 .PHONY: run-prod
 run-prod: run-prod-nginx ## runs production build with nginx TLS
@@ -200,7 +200,7 @@ export: ## package jenkins up for transport
 
 .PHONY: test
 test: ## build and test image
-	./test.sh
+	./test.sh --port $(TEST_HTTP_PORT)
 
 .PHONY: clean
 clean: ## remove temporary files from test-run
