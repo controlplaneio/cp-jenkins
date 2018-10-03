@@ -1,0 +1,10 @@
+Makefile
+setup*.yml
+
+### github.com/controlplaneio/ensure-content.git dockerignore START ###
+Dockerfile*
+Jenkinsfile*
+.git/
+.idea/
+*.iml
+### github.com/controlplaneio/ensure-content.git dockerignore END ###

@@ -1,0 +1,13 @@
+---
+ansible_credentials: "example ansible credential"
+aws_credentials:
+  - username: "aws username"
+  - password: "aws password"
+docker_crenentials:
+  - username: "docker username"
+  - password: "docker password"
+ssh_credentials: "example ssh credential"
+gitlab_jenkins_credentials:
+  - sshusername: "git"
+  - privateKeySource: "-----BEGIN RSA PRIVATE KEY-----\nxxx\n-----END RSA PRIVATE KEY-----"
+  - passphrase: ""

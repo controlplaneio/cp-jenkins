@@ -1,0 +1,5 @@
+---
+gitlab_jenkins_credentials:
+  - sshusername: "git"
+  - privateKeySource: '-----BEGIN RSA PRIVATE KEY-----\nxxx\n-----END RSA PRIVATE KEY-----'
+  - passphrase: ""

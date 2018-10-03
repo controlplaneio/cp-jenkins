@@ -1,0 +1,15 @@
+envinject:latest
+global-build-stats:latest
+dashboard-view:latest
+compress-buildlog:latest
+extra-columns:latest
+progress-bar-column-plugin:latest
+nested-view:latest
+build-monitor-plugin:latest
+delivery-pipeline-plugin:latest
+prometheus:latest
+build-history-metrics:latest
+spotinst:latest
+hashicorp-vault-plugin:latest
+jdk-tool:latest
+artifactory:latest

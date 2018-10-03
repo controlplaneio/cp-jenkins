@@ -1,0 +1,9 @@
+---
+ansible_credentials: "example ansible credential"
+aws_credentials:
+  - username: "aws username"
+  - password: "aws password"
+docker_crenentials:
+  - username: "docker username"
+  - password: "docker password"
+ssh_credentials: "example ssh credential"

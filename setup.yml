@@ -1,0 +1,69 @@
+executors:
+  master: 5
+
+jnlp_port: 5000
+
+set_master_kill_switch: true
+
+web_port: 8080
+web_proto: http
+
+seed_jobdsl: |
+  freeStyleJob('maintenance-apply-dsl') {
+      displayName('apply-dsl')
+      description('Applies all the Jenkins DSLs in the jenkins-dsl repository.')
+
+      checkoutRetryCount(3)
+
+      properties {
+          githubProjectUrl('https://github.com/controlplaneio/jenkins-dsl')
+      }
+
+      logRotator {
+          numToKeep(100)
+          daysToKeep(15)
+      }
+
+      scm {
+          git {
+              remote {
+                  url('git@github.com:controlplaneio/jenkins-dsl.git')
+                  credentials('ssh-key-jenkins-bot')
+              }
+              branches('*/master')
+              extensions {
+                  wipeOutWorkspace()
+                  cleanAfterCheckout()
+              }
+          }
+      }
+
+      triggers {
+          githubPush()
+      }
+
+      wrappers { colorizeOutput() }
+
+      steps {
+          dsl {
+              external('**/*.groovy')
+              removeAction('DELETE')
+              removeViewAction('DELETE')
+              additionalClasspath('.')
+          }
+      }
+
+      publishers {
+          extendedEmail {
+              recipientList('$DEFAULT_RECIPIENTS')
+              contentType('text/plain')
+              triggers {
+                  stillFailing {
+                      attachBuildLog(true)
+                  }
+              }
+          }
+
+          wsCleanup()
+      }
+  }
