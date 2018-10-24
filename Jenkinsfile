@@ -33,7 +33,7 @@ pipeline {
       steps {
         ansiColor('xterm') {
           sh 'make pull-base-image'
-          sh "make test CONTAINER_TAG='${getContainerTag()}' CONTAINER_TAG='${env.CACHE_BUSTER}'"
+          sh "make test CONTAINER_TAG='${getContainerTag()}' CACHE_BUSTER='${env.CACHE_BUSTER}'"
         }
       }
     }
