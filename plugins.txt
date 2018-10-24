@@ -9,6 +9,7 @@ branch-api:latest
 build-timeout:latest
 cloudbees-folder:latest
 command-launcher:latest
+copyartifact:latest
 credentials-binding:latest
 credentials:latest
 display-url-api:latest
@@ -18,7 +19,6 @@ durable-task:latest
 email-ext:latest
 external-monitor-job:latest
 favorite:latest
-ghprb:latest
 git-client:latest
 github-api:latest
 github-branch-source:latest
@@ -63,6 +63,7 @@ pipeline-stage-tags-metadata:latest
 pipeline-stage-view:latest
 plain-credentials:latest
 resource-disposer:latest
+run-selector:latest
 scm-api:latest
 script-security:latest
 sidebar-link:latest
