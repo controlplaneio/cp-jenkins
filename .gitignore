@@ -102,4 +102,4 @@ output/*/index.html
 # Sphinx
 docs/_build
 .scratch.md
-
+setup-secret.yml

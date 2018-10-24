@@ -9,8 +9,8 @@ CACHE_BUSTER=$$(date)
 
 TEST_HTTP_PORT=8090
 
-JENKINS_HOME_MOUNT_DIR ?= "/mnt/jenkins_home/"
-JENKINS_TESTING_REPO_MOUNT_DIR ?= "$${HOME}/src/"
+JENKINS_HOME_MOUNT_DIR ?= /mnt/jenkins_home/
+JENKINS_TESTING_REPO_MOUNT_DIR ?= $${HOME}/src/
 # e.g. "file:///mnt/test-repo/some-repo"
 
 JENKINS_LOCAL_JOB_OVERRIDE ?= ""
