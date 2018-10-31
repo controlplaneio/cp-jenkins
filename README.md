@@ -94,8 +94,13 @@ Jenkins. These commits should be squashed or rebased onto another branch when co
 1. Untar the tarball into the same directories on the new host
 1. Run the Makefile from this repo on the new host
   ```
-  make run-prod
+  make run-prod \
+    CONTAINER_TAG=latest \
+    VIRTUAL_HOST=myhost.example.com \
+    LETSENCRYPT_EMAIL=my@example.com
   ```
+> To run the image by itself (without nginx or letencrypt), use `make run` instead of `make run-prod`
+
 
 # Prior Art
 
