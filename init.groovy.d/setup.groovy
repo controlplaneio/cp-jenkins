@@ -296,7 +296,7 @@ def configure() {
 
       Thread.start {
         sleep 5000
-        if (Jenkins.instance.pluginManager.activePlugins.find { it.shortName == 'github-oauth' } != null) {
+        if (env['GITHUB_OAUTH'] != 'none' && Jenkins.instance.pluginManager.activePlugins.find { it.shortName == 'github-oauth' } != null) {
 
           if (env['GITHUB_OAUTH'] == 'test') {
             config.github = config.github_test

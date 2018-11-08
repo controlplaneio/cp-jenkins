@@ -10,7 +10,17 @@ To build:
 $ cp setup-secret-example.yml setup-secret.yml
 ```
 
-Edit `setup-secret.yml` and fill in the configuration values.
+Edit `setup-secret.yml` and fill in the configuration values. Update:
+```
+org_name: github organisation name
+admin_user: github username
+admin_emai: email of github user
+client_id/client_secret: OAuth secrets from Github for login
+```
+
+> Client secrest for github/github_test are used for make run/test-run respectively
+
+Then build the Docker image:
 
 ```
 $ make build

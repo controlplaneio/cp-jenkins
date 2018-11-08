@@ -2,6 +2,7 @@ Makefile
 setup*.yml
 
 ### github.com/controlplaneio/ensure-content.git dockerignore START ###
+Dockerfile
 Dockerfile*
 Jenkinsfile*
 .git/
