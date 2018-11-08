@@ -4,47 +4,59 @@ Opinionated YAML-driven Jenkins.
 
 ## Quickstart
 
-To build:
+1. Edit `setup.yml` to point to a seed job, if one is desired, or remove the contents of the `seed_jobdsl` block. Change:
+    ```
+    properties {
+        githubProjectUrl('https://github.com/controlplaneio/jenkins-dsl')
+    }
+    ```
+    and  
+    ```
+    remote {
+        url('git@github.com:controlplaneio/jenkins-dsl.git')
+        credentials('ssh-key-jenkins-bot')
+    }
+    ```
+1. Update the secrets and admin configuration for the deployment:
 
-```
-$ cp setup-secret-example.yml setup-secret.yml
-```
+    ```
+    $ cp setup-secret-example.yml setup-secret.yml
+    ```
+    
+    Edit `setup-secret.yml` and fill in the configuration values. Update:
+    ```
+    org_name: github organisation name
+    admin_user: github username
+    admin_emai: email of github user
+    client_id/client_secret: OAuth secrets from Github for login
+    ```
+    
+    > Client secrets for github/github_test are used for make run/test-run respectively
 
-Edit `setup-secret.yml` and fill in the configuration values. Update:
-```
-org_name: github organisation name
-admin_user: github username
-admin_emai: email of github user
-client_id/client_secret: OAuth secrets from Github for login
-```
+1. Build the Docker image:
+    ```
+    $ make build
+    ```
 
-> Client secrets for github/github_test are used for make run/test-run respectively
+1. Once built, launch locally:
+    
+    > Make sure `JENKINS_HOME_MOUNT_DIR` exists, and is an absolute path. If you don't
+    > specify it, it will default to `/mnt/jenkins_home`.
+    
+    ```
+    $ JENKINS_HOME_MOUNT_DIR=${HOME}/jenkins_home make run-local
+    ```
+    
+    Navigate go to `http://localhost:8080` in your browser.
 
-Then build the Docker image:
+    > For a local development workflow, see below
 
-```
-$ make build
-```
-
-To launch locally, once built:
-
-> Make sure `JENKINS_HOME_MOUNT_DIR` exists, and is an absolute path. If you don't
-> specify it, it will default to `/mnt/jenkins_home`.
-
-```
-$ JENKINS_HOME_MOUNT_DIR=${HOME}/jenkins_home make run-local
-```
-
-Then go to `http://localhost:8080` in your browser.
-
-> For a local development workflow, see below
-
-If you don't care about persisting that data then you can use the `test-run` command, which uses a new `/tmp/foo`
+1. If you don't care about persisting that data then you can use the `test-run` command, which uses a new `/tmp/foo`
 directory each invocation, and runs on `TEST_PORT` in the Makefile (default is `8090`).
-
-```
-$ make test-run
-```
+    
+    ```
+    $ make test-run
+    ```
 
 ## Configuration
 
