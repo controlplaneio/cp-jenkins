@@ -18,7 +18,7 @@ admin_emai: email of github user
 client_id/client_secret: OAuth secrets from Github for login
 ```
 
-> Client secrest for github/github_test are used for make run/test-run respectively
+> Client secrets for github/github_test are used for make run/test-run respectively
 
 Then build the Docker image:
 
@@ -32,10 +32,12 @@ To launch locally, once built:
 > specify it, it will default to `/mnt/jenkins_home`.
 
 ```
-$ JENKINS_HOME_MOUNT_DIR=${HOME}/jenkins_home make run
+$ JENKINS_HOME_MOUNT_DIR=${HOME}/jenkins_home make run-local
 ```
 
 Then go to `http://localhost:8080` in your browser.
+
+> For a local development workflow, see below
 
 If you don't care about persisting that data then you can use the `test-run` command, which uses a new `/tmp/foo`
 directory each invocation, and runs on `TEST_PORT` in the Makefile (default is `8090`).
@@ -62,7 +64,13 @@ particuarly useful for Jenkinsfile and Job DSL development.
 
 ### Steps
 
-1. `JENKINS_HOME_MOUNT_DIR=${HOME}/jenkins_home JENKINS_TESTING_REPO_MOUNT_DIR=${HOME}/test-repo make run`
+1. Invoke the container:
+    ```bash
+    JENKINS_HOME_MOUNT_DIR=${HOME}/jenkins_home \
+      JENKINS_TESTING_REPO_MOUNT_DIR=${HOME}/test-repo \
+      CONTAINER_TAG=latest \
+      make run-local
+     ```
     1. add the directories you want to mount for the Jenkins home directory and the repository you are building to the environment variables `JENKINS_HOME_MOUNT_DIR` and `JENKINS_TESTING_REPO_MOUNT_DIR`.
     1. this mounts the `JENKINS_TESTING_REPO_MOUNT_DIR` to `/mnt/test-repo`
 1. Log in at [http://localhost:8080](http://localhost:8080) (or `TEST_PORT` if running `make test-run`, default `8090`)
