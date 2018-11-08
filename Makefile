@@ -126,6 +126,26 @@ test-run: ## runs the last built docker image with ephemeral storage
 	cat "$(shell pwd)/setup-secret-example.yml" \
 				| docker exec -i jenkins-test sh -c "cat >/usr/share/jenkins/config/setup-secret-example.yml"
 
+.PHONY: run-local
+run-local: mount-point ## runs the last built docker image with persistent storage
+	@echo "+ $@"
+	docker rm --force jenkins || true
+	docker run \
+	  --name jenkins \
+	  --rm \
+	  --group-add docker \
+	  -e GITHUB_OAUTH=none \
+	  -e JENKINS_DSL_OVERRIDE=$(JENKINS_DSL_OVERRIDE) \
+	  -e JENKINS_LOCAL_JOB_OVERRIDE=$(JENKINS_LOCAL_JOB_OVERRIDE) \
+		-p 8080:8080 \
+		-p 50000:50000 \
+		-v "$(shell pwd)/setup.yml":/usr/share/jenkins/setup.yml \
+		-v "$(shell pwd)/setup-secret.yml":/usr/share/jenkins/setup-secret.yml \
+		-v "$(JENKINS_HOME_MOUNT_DIR)":/var/jenkins_home \
+		-v "$(JENKINS_TESTING_REPO_MOUNT_DIR):/mnt/test-repo" \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		"$(CONTAINER_NAME)"
+
 .PHONY: run
 run: mount-point ## runs the last built docker image with persistent storage
 	@echo "+ $@"
@@ -216,4 +236,3 @@ help: ## parse jobs and descriptions from this Makefile
     | grep -Ev '^help\b[[:space:]]*:' \
     | sort \
     | awk 'BEGIN {FS = ":.*?##"}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
-
