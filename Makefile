@@ -5,8 +5,10 @@ REGISTRY := docker.io/controlplane
 VIRTUAL_HOST ?= ""
 LETSENCRYPT_EMAIL ?= ""
 
-CACHE_BUSTER ?= $$(date)
-
+CACHE_BUSTER ?= ""
+ifeq ($(CACHE_BUSTER),)
+	CACHE_BUSTER = $$(date)
+endif
 
 TEST_HTTP_PORT=8090
 
