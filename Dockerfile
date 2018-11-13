@@ -55,11 +55,11 @@ RUN \
 
 ARG CACHE_BUSTER=KEEP_CACHE
 
+SHELL ["/bin/bash", "-c"]
 COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
 RUN \
   /usr/local/bin/install-plugins.sh < /usr/share/jenkins/ref/plugins.txt
 
-SHELL ["/bin/bash", "-c"]
 COPY plugins-test.txt /usr/share/jenkins/ref/plugins-test.txt
 RUN \
   grep -q ^0 < <(wc -l /usr/share/jenkins/ref/plugins-test.txt) \
