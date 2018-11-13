@@ -64,7 +64,7 @@ main() {
 }
 
 build_jenkins() {
-  make build
+  make build-with-cache
 }
 
 start_jenkins() {
