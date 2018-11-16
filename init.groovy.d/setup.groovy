@@ -111,7 +111,7 @@ def configure() {
     }
   }
 
-// setup Jenkins generics
+  // setup Jenkins generics
   Thread.start {
     def JENKINS = Jenkins.getInstance()
 
