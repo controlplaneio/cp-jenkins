@@ -1,0 +1,20 @@
+JENKINS_SAML_IDP_METADATA='<?xml version="1.0" encoding="UTF-8"?><md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" entityID="http://www.okta.com/exk2c08wqxEUv9apb0i7"><md:IDPSSODescriptor WantAuthnRequestsSigned="false" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol"><md:KeyDescriptoruse="signing"><ds:KeyInfoxmlns:ds="http://www.w3.org/2000/09/xmldsig#"><ds:X509Data><ds:X509Certificate>MIIDnDCCAoSgAwIBAgIGAV2hVVk3MA0GCSqGSIb3DQEBCwUAMIGOMQswCQYDVQQGEwJVUzETMBEGA1UECAwKQ2FsaWZvcm5pYTEWMBQGA1UEBwwNU2FuIEZyYW5jaXNjbzENMAsGA1UECgwET2t0YTEUMBIGA1UECwwLU1NPUHJvdmlkZXIxDzANBgNVBAMMBm5ld3N1azEcMBoGCSqGSIb3DQEJARYNaW5mb0Bva3RhLmNvbTAeFw0xNzA4MDIwNTA0MTFaFw0yNzA4MDIwNTA1MTFaMIGOMQswCQYDVQQGEwJVUzETMBEGA1UECAwKQ2FsaWZvcm5pYTEWMBQGA1UEBwwNU2FuIEZyYW5jaXNjbzENMAsGA1UECgwET2t0YTEUMBIGA1UECwwLU1NPUHJvdmlkZXIxDzANBgNVBAMMBm5ld3N1azEcMBoGCSqGSIb3DQEJ
+ARYNaW5mb0Bva3RhLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAL2598cTHxHc
+bkKBzIWGaI79FzKUe1rhdmFdJlMpL5PAvpAe4MJZh8WiYOjRx/sBFs34Xr8bL2WRauudapUByIzY
+6KwpN96hAJPjr2N532cdbmg4jL057v7+1XuTklkBzvZfX2mbCfWSOuVMQjh+3vapCfIKSOC0InDG
+GZFH80T32ANw/ljsoB9SiE7SxXVkbFDKJ7lLSgjXwtbxE3a8UdY529dwFoWu1wrRA2R5EJ+dq2de
+TsfJ1/yt7hmUZx7mrKJAqINeL/95efeXnxa9K/GHPhJ4WpDOSb0snHlQJojz84NeuXJnrARD7iJl
+PtbLVaXpZ9bi3HO2F4zBDtPzz2UCAwEAATANBgkqhkiG9w0BAQsFAAOCAQEAUnZam541pwFSmPy6
+gosMBllm08CuE51kBE4YoJWXTdt1RaUOQkVUvKRCDcQrEJr6YMJ40eFOD8F8mSEcq/BkCq128dXe
+f9+ZqDvpPsqP46nf3XTNwvPGRREW3fT01y1mFEKdP+JHwb7YaARIQXlreW4YhYSRevoE+2DQONW2
+8TG8sayZRGLIjz0dT2cVcTU1Gwf1Qqjui7TWJ4mJt0qSKqg0Nd48eNzWRlNxDynxEx7H62PuHZbd
+LtRTR4eNm5EP1pymn/4SopNtFz1sgNgRmVdP8vbmIUWmrBucpLViPbHeU8WR9vzJyHGrINogAmbD
+o5SOXHd4I2bLOXd7oWkTyA==</ds:X509Certificate></ds:X509Data></ds:KeyInfo></md:KeyDescriptor><md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</md:NameIDFormat><md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress</md:NameIDFormat><md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://newsuk.okta-emea.com/app/newsuk_acsauth_1/exk2c08wqxEUv9apb0i7/sso/saml"/><md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://newsuk.okta-emea.com/app/newsuk_acsauth_1/exk2c08wqxEUv9apb0i7/sso/saml"/></md:IDPSSODescriptor></md:EntityDescriptor>'
+JENKINS_SAML_DISPLAY_NAME_ATTRIBUTE_NAME='http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'
+JENKINS_SAML_GROUPS_ATTRIBUTE_NAME='Group'
+JENKINS_SAML_MAXIMUM_AUTHENTICATION_LIFETIME=86400
+JENKINS_SAML_USERNAME_ATTRIBUTE_NAME='http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'
+JENKINS_SAML_EMAIL_ATTRIBUTE_NAME=''
+JENKINS_SAML_LOGOUT_URL=https://newsuk.okta-emea.com
+JENKINS_SAML_USERNAME_CASE_CONVERSION='none'
+JENKINS_SAML_BINDING='urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'

@@ -24,6 +24,11 @@ import hudson.model.*
 import hudson.security.*
 import hudson.plugins.sshslaves.*;
 
+import hudson.security.csrf.*
+import jenkins.security.s2m.AdminWhitelistRule
+import org.jenkinsci.plugins.*
+import org.jenkinsci.plugins.saml.*
+
 import hudson.security.SecurityRealm
 import hudson.security.AuthorizationStrategy
 import org.jenkinsci.plugins.GithubSecurityRealm
@@ -111,7 +116,7 @@ def configure() {
     }
   }
 
-// setup Jenkins generics
+  // setup Jenkins generics
   Thread.start {
     def JENKINS = Jenkins.getInstance()
 
@@ -294,70 +299,119 @@ def configure() {
         log('setting agent port for jnlp... done')
       }
 
+      // Thread.start {
+      //   sleep 5000
+      //   if (env['GITHUB_OAUTH'] != 'none' && Jenkins.instance.pluginManager.activePlugins.find { it.shortName == 'github-oauth' } != null) {
+      //
+      //     if (env['GITHUB_OAUTH'] == 'test') {
+      //       config.github = config.github_test
+      //     }
+      //
+      //     String githubWebUri = env['GITHUB_WEB_URI'] ?: config.github.oauth.web_uri ?: 'https://github.com'
+      //     String githubApiUri = env['GITHUB_API_URI'] ?: config.github.oauth.api_uri ?: 'https://api.github.com'
+      //     String clientID = env['GITHUB_CLIENT_ID'] ?: config.github.oauth.client_id ?: 'someid'
+      //     String clientSecret = env['GITHUB_CLIENT_SECRET'] ?: config.github.oauth.client_secret ?: 'somesecret'
+      //     String oauthScopes = 'read:org'
+      //
+      //     SecurityRealm github_realm = new GithubSecurityRealm(githubWebUri, githubApiUri, clientID, clientSecret, oauthScopes)
+      //     //check for equality, no need to modify the runtime if no settings changed
+      //     if (!github_realm.equals(Jenkins.instance.getSecurityRealm())) {
+      //       Jenkins.instance.setSecurityRealm(github_realm)
+      //       Jenkins.instance.save()
+      //     }
+      //
+      //     //----
+      //
+      //     //permissions are ordered similar to web UI
+      //     //Admin User Names
+      //     String adminUserNames = env['JENKINS_ADMIN_USERNAME'] ?: config.admin.username ?: 'admin'
+      //     //Participant in Organization
+      //     String organizationNames = env['GITHUB_ORG'] ?: config.github.org_name ?: ''
+      //     //Use Github repository permissions
+      //     boolean useRepositoryPermissions = true
+      //     //Grant READ permissions to all Authenticated Users
+      //     boolean authenticatedUserReadPermission = true
+      //     //Grant CREATE Job permissions to all Authenticated Users
+      //     boolean authenticatedUserCreateJobPermission = false
+      //     //Grant READ permissions for /github-webhook
+      //     boolean allowGithubWebHookPermission = false
+      //     //Grant READ permissions for /cc.xml
+      //     boolean allowCcTrayPermission = false
+      //     //Grant READ permissions for Anonymous Users
+      //     boolean allowAnonymousReadPermission = false
+      //     //Grant ViewStatus permissions for Anonymous Users
+      //     boolean allowAnonymousJobStatusPermission = false
+      //
+      //     AuthorizationStrategy github_authorization = new GithubAuthorizationStrategy(
+      //       adminUserNames,
+      //       authenticatedUserReadPermission,
+      //       useRepositoryPermissions,
+      //       authenticatedUserCreateJobPermission,
+      //       organizationNames,
+      //       allowGithubWebHookPermission,
+      //       allowCcTrayPermission,
+      //       allowAnonymousReadPermission,
+      //       allowAnonymousJobStatusPermission
+      //     )
+      //
+      //     //check for equality, no need to modify the runtime if no settings changed
+      //     if (!github_authorization.equals(Jenkins.instance.getAuthorizationStrategy())) {
+      //       Jenkins.instance.setAuthorizationStrategy(github_authorization)
+      //       log('Saving Github authorisation strategy')
+      //
+      //       Jenkins.instance.save()
+      //     }
+      //   } else {
+      //     log('Github oauth plugin not found')
+      // }
+
       Thread.start {
         sleep 5000
-        if (env['GITHUB_OAUTH'] != 'none' && Jenkins.instance.pluginManager.activePlugins.find { it.shortName == 'github-oauth' } != null) {
+        if (Jenkins.instance.pluginManager.activePlugins.find { it.shortName == 'saml' } != null) {
 
-          if (env['GITHUB_OAUTH'] == 'test') {
-            config.github = config.github_test
-          }
+          String idpMetadata = env['JENKINS_SAML_IDP_METADATA']
+          String displayNameAttributeName = env['JENKINS_SAML_DISPLAY_NAME_ATTRIBUTE_NAME']
+          String groupsAttributeName = env['JENKINS_SAML_GROUPS_ATTRIBUTE_NAME']
+          String maximumAuthenticationLifetime = env['JENKINS_SAML_MAXIMUM_AUTHENTICATION_LIFETIME']
+          String usernameAttributeName = env['JENKINS_SAML_USERNAME_ATTRIBUTE_NAME']
+          String emailAttributeName = env['JENKINS_SAML_EMAIL_ATTRIBUTE_NAME']
+          String logoutUrl = env['JENKINS_SAML_LOGOUT_URL']
+          String usernameCaseConversion = env['JENKINS_SAML_USERNAME_CASE_CONVERSION']
+          String binding = env['JENKINS_SAML_BINDING']
 
-          String githubWebUri = env['GITHUB_WEB_URI'] ?: config.github.oauth.web_uri ?: 'https://github.com'
-          String githubApiUri = env['GITHUB_API_URI'] ?: config.github.oauth.api_uri ?: 'https://api.github.com'
-          String clientID = env['GITHUB_CLIENT_ID'] ?: config.github.oauth.client_id ?: 'someid'
-          String clientSecret = env['GITHUB_CLIENT_SECRET'] ?: config.github.oauth.client_secret ?: 'somesecret'
-          String oauthScopes = 'read:org'
-
-          SecurityRealm github_realm = new GithubSecurityRealm(githubWebUri, githubApiUri, clientID, clientSecret, oauthScopes)
+          SecurityRealm securityRealm = new SamlSecurityRealm(
+            new String(idpMetadata.decodeBase64()),
+            displayNameAttributeName,
+            groupsAttributeName,
+            maximumAuthenticationLifetime.toInteger(),
+            usernameAttributeName,
+            emailAttributeName,
+            logoutUrl ?: null,
+            null,
+            null,
+            usernameCaseConversion ?: null,
+            binding ?: null
+          )
           //check for equality, no need to modify the runtime if no settings changed
-          if (!github_realm.equals(Jenkins.instance.getSecurityRealm())) {
-            Jenkins.instance.setSecurityRealm(github_realm)
+          if (!securityRealm.equals(Jenkins.instance.getSecurityRealm())) {
+            Jenkins.instance.setSecurityRealm(securityRealm)
             Jenkins.instance.save()
           }
 
           //----
 
-          //permissions are ordered similar to web UI
-          //Admin User Names
-          String adminUserNames = env['JENKINS_ADMIN_USERNAME'] ?: config.admin.username ?: 'admin'
-          //Participant in Organization
-          String organizationNames = env['GITHUB_ORG'] ?: config.github.org_name ?: ''
-          //Use Github repository permissions
-          boolean useRepositoryPermissions = true
-          //Grant READ permissions to all Authenticated Users
-          boolean authenticatedUserReadPermission = true
-          //Grant CREATE Job permissions to all Authenticated Users
-          boolean authenticatedUserCreateJobPermission = false
-          //Grant READ permissions for /github-webhook
-          boolean allowGithubWebHookPermission = false
-          //Grant READ permissions for /cc.xml
-          boolean allowCcTrayPermission = false
-          //Grant READ permissions for Anonymous Users
-          boolean allowAnonymousReadPermission = false
-          //Grant ViewStatus permissions for Anonymous Users
-          boolean allowAnonymousJobStatusPermission = false
-
-          AuthorizationStrategy github_authorization = new GithubAuthorizationStrategy(
-            adminUserNames,
-            authenticatedUserReadPermission,
-            useRepositoryPermissions,
-            authenticatedUserCreateJobPermission,
-            organizationNames,
-            allowGithubWebHookPermission,
-            allowCcTrayPermission,
-            allowAnonymousReadPermission,
-            allowAnonymousJobStatusPermission
-          )
+          def strategy = new FullControlOnceLoggedInAuthorizationStrategy()
+          strategy.setAllowAnonymousRead(false)
 
           //check for equality, no need to modify the runtime if no settings changed
-          if (!github_authorization.equals(Jenkins.instance.getAuthorizationStrategy())) {
-            Jenkins.instance.setAuthorizationStrategy(github_authorization)
-            log('Saving Github authorisation strategy')
+          if (!strategy.equals(Jenkins.instance.getAuthorizationStrategy())) {
+            Jenkins.instance.setAuthorizationStrategy(strategy)
+            log('Saving authorisation strategy')
 
             Jenkins.instance.save()
           }
         } else {
-          log('Github oauth plugin not found')
+          log('saml plugin not found')
         }
 
         log 'Jenkins provided DSL script setup complete'
