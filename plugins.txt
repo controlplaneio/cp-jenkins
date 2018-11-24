@@ -89,7 +89,6 @@ ssh-credentials:latest
 ssh-slaves:latest
 structs:latest
 subversion:latest
-timestamper:latest
 token-macro:latest
 variant:latest
 view-job-filters:latest
