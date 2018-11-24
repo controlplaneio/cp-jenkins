@@ -37,7 +37,10 @@ CONTAINER_ID=''
 PORT="8080"
 
 READY_LOG_TEXT="Jenkins provided DSL script setup complete"
-FAILED_LOG_TEXT="Failed to run script file"
+FAILED_LOG_TEXT=(
+"Failed to run script file"
+"WARNING: GroovyInitScript.init failed"
+)
 
 export CONTAINER_TAG=latest
 
@@ -74,6 +77,7 @@ start_jenkins() {
     sleep 0.2
   done
   CONTAINER_ID=$(cat /tmp/jenkins-test.cid)
+  info "CONTAINER_ID: ${CONTAINER_ID}"
 }
 
 cleanup() {
@@ -83,15 +87,28 @@ cleanup() {
 
 wait_until_initialised() {
   local IS_FAILED=0
+  local IS_OUTPUT=0
   local START_TIME="${SECONDS}"
-  while read LINE; do
+
+  while IFS='' read LINE; do
     if echo "${LINE}" | grep --color=always -E "${READY_LOG_TEXT}"; then
       success "Jenkins is ready"
       break
-    elif echo "${LINE}" | grep --color=always -E "${FAILED_LOG_TEXT}"; then
-      warning "Failed to start Jenkins, failing"
-      IS_FAILED=$((IS_FAILED + 1))
-    else
+    fi
+
+    IS_OUTPUT=0
+    OLD_IFS="${IFS}"
+    IFS=$'\n'
+    for THIS_FAILED_LOG_TEXT in "${FAILED_LOG_TEXT[@]}"; do
+      if echo "${LINE}" | grep --color=always -E "${THIS_FAILED_LOG_TEXT}"; then
+        warning "Error in log output"
+        IS_FAILED=$((IS_FAILED + 1))
+        IS_OUTPUT=1
+      fi
+    done
+    IFS="${OLD_IFS}"
+
+    if [[ "${IS_OUTPUT}" == 0 ]]; then
       echo -e "${LINE}" | grep --color=always -E '^|INFO: !!!.*' || true
     fi
 

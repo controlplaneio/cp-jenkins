@@ -58,12 +58,10 @@ ARG CACHE_BUSTER=KEEP_CACHE
 SHELL ["/bin/bash", "-c"]
 COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
 RUN \
-  /usr/local/bin/install-plugins.sh < /usr/share/jenkins/ref/plugins.txt
-
-COPY plugins-test.txt /usr/share/jenkins/ref/plugins-test.txt
-RUN \
-  grep -q ^0 < <(wc -l /usr/share/jenkins/ref/plugins-test.txt) \
-  || /usr/local/bin/install-plugins.sh < /usr/share/jenkins/ref/plugins-test.txt
+  ATTEMPTS=2 \
+  /usr/local/bin/install-plugins.sh < /usr/share/jenkins/ref/plugins.txt \
+  \
+  && [[ ! -f /usr/share/jenkins/ref/plugins/failed-plugins.txt ]]
 
 COPY init.groovy.d /usr/share/jenkins/ref/init.groovy.d/
 COPY entrypoint.sh /entrypoint.sh
