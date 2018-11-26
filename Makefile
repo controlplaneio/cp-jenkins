@@ -2,17 +2,10 @@ NAME := cp-jenkins
 PKG := github.com/controlplane/$(NAME)
 REGISTRY := docker.io/controlplane
 
-ENV_FILE := ./env
-include ${ENV_FILE}
-export $(shell sed 's/=.*//' "${ENV_FILE}")
-
 VIRTUAL_HOST ?= ""
 LETSENCRYPT_EMAIL ?= ""
 
-CACHE_BUSTER ?= ""
-ifeq ($(CACHE_BUSTER),)
-	CACHE_BUSTER = $$(date)
-endif
+CACHE_BUSTER=$$(date)
 
 TEST_HTTP_PORT=8090
 
@@ -37,10 +30,7 @@ endif
 
 CONTAINER_TAG ?= $(GIT_TAG)
 CONTAINER_NAME := $(REGISTRY)/$(NAME):$(CONTAINER_TAG)
-CONTAINER_NAME_SLAVE := $(REGISTRY)/$(NAME)-slave:latest
 CONTAINER_NAME_LATEST := $(REGISTRY)/$(NAME):latest
-CONTAINER_NAME_SLAVE_LATEST := $(REGISTRY)/$(NAME)-slave:latest
-
 
 export NAME REGISTRY BUILD_DATE GIT_MESSAGE GIT_SHA GIT_TAG CONTAINER_TAG CONTAINER_NAME
 
@@ -75,26 +65,8 @@ build: pull-base-image ## builds a Docker image, cachebusting for plugins
 .PHONY: build-with-cache
 build-with-cache: ## builds a Docker image, keeping the cache intact
 	@echo "+ $@"
-	CACHE_BUSTER=KEEP_CACHE \
-		CONTAINER_NAME=$${CONTAINER_NAME} \
-		VIRTUAL_HOST=$${VIRTUAL_HOST} \
-		make build
-
-build-slave: pull-base-image ## builds a docker image for the slave
-	@echo "+ $@"
-	docker build \
-		--tag "${CONTAINER_NAME_SLAVE}" \
-		--build-arg FOOTER_URL="$(VIRTUAL_HOST)" \
-		--build-arg CACHE_BUSTER="$(CACHE_BUSTER)" \
-		--file Dockerfile.slave .
-
-.PHONY: build-slave-with-cache
-build-slave-with-cache: ## builds a Docker slave image, keeping the cache intact
-	@echo "+ $@"
-	CACHE_BUSTER=KEEP_CACHE \
-		CONTAINER_NAME=$${CONTAINER_NAME} \
-		VIRTUAL_HOST=$${VIRTUAL_HOST} \
-		make build-slave
+	CACHE_BUSTER=KEEP_CACHE
+	export CACHE_BUSTER CONTAINER_NAME VIRTUAL_HOST; make build
 
 .PHONY: pull-base-image
 pull-base-image: ## pulls a Docker base image
@@ -202,6 +174,8 @@ run-prod: run-prod-nginx ## runs production build with nginx TLS
 		--name jenkins \
 		-d \
 		--group-add docker \
+		--env-file saml.env \
+		-e GITHUB_OAUTH=none \
 		-e VIRTUAL_PORT="8080" \
 		-e VIRTUAL_HOST="$(VIRTUAL_HOST)" \
 		-e LETSENCRYPT_HOST="$(VIRTUAL_HOST)" \
