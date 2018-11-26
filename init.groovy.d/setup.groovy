@@ -366,10 +366,9 @@ def configure() {
       // }
 
       Thread.start {
-        sleep 5000
         if (Jenkins.instance.pluginManager.activePlugins.find { it.shortName == 'saml' } != null) {
 
-          String idpMetadata = env['JENKINS_SAML_IDP_METADATA']
+          IdpMetadataConfiguration idpMetadataConfiguration = new IdpMetadataConfiguration(env['JENKINS_SAML_IDP_METADATA'])
           String displayNameAttributeName = env['JENKINS_SAML_DISPLAY_NAME_ATTRIBUTE_NAME']
           String groupsAttributeName = env['JENKINS_SAML_GROUPS_ATTRIBUTE_NAME']
           String maximumAuthenticationLifetime = env['JENKINS_SAML_MAXIMUM_AUTHENTICATION_LIFETIME']
@@ -380,7 +379,7 @@ def configure() {
           String binding = env['JENKINS_SAML_BINDING']
 
           SecurityRealm securityRealm = new SamlSecurityRealm(
-            new String(idpMetadata.decodeBase64()),
+            idpMetadata,
             displayNameAttributeName,
             groupsAttributeName,
             maximumAuthenticationLifetime.toInteger(),
