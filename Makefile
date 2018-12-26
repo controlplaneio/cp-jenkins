@@ -63,6 +63,7 @@ build: pull-base-image ## builds a Docker image, cachebusting for plugins
 	@echo "+ $@"
 	docker build \
 		--tag "$(CONTAINER_NAME)" \
+		--cache-from "$(CONTAINER_NAME_LATEST)" \
 		--build-arg FOOTER_URL="$(VIRTUAL_HOST)" \
 		--build-arg CACHE_BUSTER="$(CACHE_BUSTER)" \
 		.
@@ -111,7 +112,7 @@ mount-point: ## creates a mount point for the image volume
 	chown $${USER} $(JENKINS_HOME_MOUNT_DIR) -R;
 
 .PHONY: test-run
-test-run: ## runs the last built docker image with ephemeral storage
+test-run: check-mount-points ## runs the last built docker image with ephemeral storage
 	@echo "+ $@"
 	docker rm --force jenkins-test || true
 	if [[ -n "$$(cat /tmp/jenkins-test.cid)" ]]; then \
@@ -151,7 +152,7 @@ test-run: ## runs the last built docker image with ephemeral storage
 				| docker exec -i jenkins-test sh -c "cat >/usr/share/jenkins/config/setup-secret-example.yml"
 
 .PHONY: run-local
-run-local: mount-point ## runs the last built docker image with persistent storage
+run-local: check-mount-points mount-point ## runs the last built docker image with persistent storage
 	@echo "+ $@"
 	docker rm --force jenkins || true
 	docker run \
@@ -171,7 +172,7 @@ run-local: mount-point ## runs the last built docker image with persistent stora
 		"$(CONTAINER_NAME)"
 
 .PHONY: run
-run: mount-point ## runs the last built docker image with persistent storage
+run: check-mount-points mount-point ## runs the last built docker image with persistent storage
 	@echo "+ $@"
 	docker rm --force jenkins || true
 	docker run \
@@ -190,8 +191,14 @@ run: mount-point ## runs the last built docker image with persistent storage
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		"$(CONTAINER_NAME)"
 
+.PHONY: check-mount-points
+check-mount-points: ## ensure that files to be mounted into the container exist and are not directories
+	@echo "+ $@"
+	[[ -f $(shell pwd)/setup.yml ]] || { echo "/usr/share/jenkins/setup.yml should be a file, found directory"; exit 1; }
+	[[ -f $(shell pwd)/setup-secret.yml ]] || { echo "/usr/share/jenkins/setup-secret.yml should be a file, found directory"; exit 1; }
+
 .PHONY: run-prod
-run-prod: run-prod-nginx ## runs production build with nginx TLS
+run-prod: check-mount-points run-prod-nginx ## runs production build with nginx TLS
 	@echo "+ $@"
 	ID=$$(docker run \
 		--restart always \
