@@ -23,20 +23,39 @@ SHELL := /bin/bash
 BUILD_DATE := $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 
 GIT_MESSAGE := $(shell git -c log.showSignature=false log --max-count=1 --pretty=format:"%H")
-GIT_SHA := $(shell git log -1 --format=%h)
-GIT_TAG ?= $(shell bash -c 'TAG=$$(git tag | tail -n1); echo "$${TAG:-none}"')
+GIT_SHA := $(shell git rev-parse HEAD)
+GIT_TAG ?= $(shell bash -c 'TAG=$$(git describe --tags --exact-match --abbrev=0 $(GIT_SHA) 2>/dev/null); echo "$${TAG:-dev}"')
 
-GIT_UNTRACKED_CHANGES := $(shell git status --porcelain --untracked-files=no)
+GIT_UNTRACKED_CHANGES := $(shell git status --porcelain)
 ifneq ($(GIT_UNTRACKED_CHANGES),)
 	GIT_COMMIT := $(GIT_COMMIT)-dirty
+	ifneq ($(GIT_TAG),dev)
+		GIT_TAG := $(GIT_TAG)-dirty
+	endif
 endif
 
 CONTAINER_TAG ?= $(GIT_TAG)
+CONTAINER_TAG_LATEST := $(GIT_TAG)
 CONTAINER_NAME := $(REGISTRY)/$(NAME):$(CONTAINER_TAG)
-CONTAINER_NAME_SLAVE := $(REGISTRY)/$(NAME)-slave:latest
-CONTAINER_NAME_LATEST := $(REGISTRY)/$(NAME):latest
-CONTAINER_NAME_SLAVE_LATEST := $(REGISTRY)/$(NAME)-slave:latest
+CONTAINER_NAME_SLAVE := $(REGISTRY)/$(NAME)-slave:$(CONTAINER_TAG)
 
+# if no untracked changes and tag is not dev, release `latest` tag
+ifeq ($(GIT_UNTRACKED_CHANGES),)
+	ifneq ($(GIT_TAG),dev)
+		CONTAINER_TAG_LATEST = latest
+	endif
+endif
+
+CONTAINER_NAME_LATEST := $(REGISTRY)/$(NAME):$(CONTAINER_TAG_LATEST)
+CONTAINER_NAME_SLAVE_LATEST := $(REGISTRY)/$(NAME)-slave:$(CONTAINER_TAG_LATEST)
+
+# ---
+
+$(info $$VIRTUAL_HOST is [${VIRTUAL_HOST}])
+$(info $$LETSENCRYPT_EMAIL is [${LETSENCRYPT_EMAIL}])
+$(info $$CONTAINER_NAME is [${CONTAINER_NAME}])
+$(info $$CONTAINER_NAME_LATEST is [${CONTAINER_NAME_LATEST}])
+$(info ---)
 
 export NAME REGISTRY BUILD_DATE GIT_MESSAGE GIT_SHA GIT_TAG CONTAINER_TAG CONTAINER_NAME
 
@@ -196,6 +215,7 @@ check-mount-points: ## ensure that files to be mounted into the container exist 
 	@echo "+ $@"
 	[[ -f $(shell pwd)/setup.yml ]] || { echo "/usr/share/jenkins/setup.yml should be a file, found directory"; exit 1; }
 	[[ -f $(shell pwd)/setup-secret.yml ]] || { echo "/usr/share/jenkins/setup-secret.yml should be a file, found directory"; exit 1; }
+	[[ -w "$(JENKINS_HOME_MOUNT_DIR)" ]] || { echo "$(JENKINS_HOME_MOUNT_DIR) is not writeable"; exit 1; }
 
 .PHONY: run-prod
 run-prod: check-mount-points run-prod-nginx ## runs production build with nginx TLS
