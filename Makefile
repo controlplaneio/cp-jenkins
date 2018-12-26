@@ -103,6 +103,8 @@ push: ## pushes a docker image
 	@echo "+ $@"
 	docker push "$(CONTAINER_NAME)"
 	docker push "$(CONTAINER_NAME_LATEST)"
+	docker push "$(CONTAINER_NAME_SLAVE)"
+	docker push "$(CONTAINER_NAME_SLAVE_LATEST)"
 
 .PHONY: mount-point
 mount-point: ## creates a mount point for the image volume
@@ -190,6 +192,29 @@ run: check-mount-points mount-point ## runs the last built docker image with per
 		-v "$(JENKINS_TESTING_REPO_MOUNT_DIR):/mnt/test-repo" \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		"$(CONTAINER_NAME)"
+
+.PHONY: run-slave
+run-slave: ## runs a build slave
+	@echo "+ $@"
+	set -x
+	if [[ -z "$(SECRET)" ]]; then \
+		echo "SECRET is empty"; \
+		exit 1; \
+	fi
+
+	docker run \
+		--net=host \
+		-v "$(JENKINS_HOME_MOUNT_DIR)":/var/jenkins_home \
+		-v "$(JENKINS_TESTING_REPO_MOUNT_DIR):/mnt/test-repo" \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		\
+		${CONTAINER_NAME_SLAVE} \
+		-url https://$(VIRTUAL_HOST):50000 \
+		-workDir=/home/jenkins/agent \
+		$(SECRET) \
+		slave
+
+	# -url http://$$(docker inspect --format="{{.NetworkSettings.IPAddress}}" jenkins):8080 \
 
 .PHONY: check-mount-points
 check-mount-points: ## ensure that files to be mounted into the container exist and are not directories
