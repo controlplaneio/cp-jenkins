@@ -131,7 +131,7 @@ mount-point: ## creates a mount point for the image volume
 	chown $${USER} $(JENKINS_HOME_MOUNT_DIR) -R;
 
 .PHONY: test-run
-test-run: check-mount-points ## runs the last built docker image with ephemeral storage
+test-run: ## runs the last built docker image with ephemeral storage
 	@echo "+ $@"
 	docker rm --force jenkins-test || true
 	if [[ -n "$$(cat /tmp/jenkins-test.cid)" ]]; then \
