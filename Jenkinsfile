@@ -39,6 +39,9 @@ pipeline {
     }
 
     stage('Push') {
+      when {
+        branch "master"
+      }
       agent {
         docker {
           image 'docker.io/controlplane/gcloud-sdk:latest'
@@ -62,11 +65,6 @@ pipeline {
       steps {
         ansiColor('xterm') {
           sh """
-            pwd
-            ls -lasp
-
-            echo '${DOCKER_REGISTRY_CREDENTIALS_PSW}' | base64
-
             echo '${DOCKER_REGISTRY_CREDENTIALS_PSW}' \
             | docker login \
               --username '${DOCKER_REGISTRY_CREDENTIALS_USR}' \
