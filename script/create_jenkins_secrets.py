@@ -4,6 +4,7 @@ import argparse
 import logging
 import sys
 import yaml
+import json
 import requests
 import getpass
 import warnings
@@ -71,8 +72,8 @@ def main():
                         form_payload = get_form_payload(secret_type).format(
                             scope=credential_scope,
                             id=credential_id,
-                            secret=credential_text,
-                            description=credential_description
+                            secret=json.dumps(credential_text),
+                            description=json.dumps(credential_description)
                         )
 
                     elif secret_type == 'userpass':
@@ -162,8 +163,8 @@ def get_form_payload(secret_type):
 "credentials":{{
 "scope":"{scope}",
 "id":"{id}",
-"secret":"{secret}",
-"description":"{description}",
+"secret":{secret},
+"description":{description},
 "$class":"org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl"
 }}
 }}'''
