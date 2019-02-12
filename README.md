@@ -4,6 +4,8 @@ Opinionated YAML-driven Jenkins.
 
 ## Quickstart
 
+> For a local development workflow, see below
+
 1. Edit `setup.yml` to point to a seed job, if one is desired, or remove the contents of the `seed_jobdsl` block. Change:
     ```
     properties {
