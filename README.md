@@ -24,7 +24,7 @@ Opinionated YAML-driven Jenkins.
     ```
     $ cp setup-secret-example.yml setup-secret.yml
     ```
-    
+
     Edit `setup-secret.yml` and fill in the configuration values. Update:
     ```
     org_name: github organisation name
@@ -32,7 +32,7 @@ Opinionated YAML-driven Jenkins.
     admin_emai: email of github user
     client_id/client_secret: OAuth secrets from Github for login
     ```
-    
+
     > Client secrets for github/github_test are used for make run/test-run respectively
 
 1. Build the Docker image:
@@ -41,21 +41,21 @@ Opinionated YAML-driven Jenkins.
     ```
 
 1. Once built, launch locally:
-    
+
     > Make sure `JENKINS_HOME_MOUNT_DIR` exists, and is an absolute path. If you don't
     > specify it, it will default to `/mnt/jenkins_home`.
-    
+
     ```
     $ JENKINS_HOME_MOUNT_DIR=${HOME}/jenkins_home make run-local
     ```
-    
+
     Navigate go to `http://localhost:8080` in your browser.
 
     > For a local development workflow, see below
 
 1. If you don't care about persisting that data then you can use the `test-run` command, which uses a new `/tmp/foo`
 directory each invocation, and runs on `TEST_PORT` in the Makefile (default is `8090`).
-    
+
     ```
     $ make test-run
     ```
@@ -112,6 +112,10 @@ Jenkins. These commits should be squashed or rebased onto another branch when co
   1. Iterate
   1. When complete, rebase changes onto another branch for commit or PR
 
+You can inject secrets automatically into your local Jenkins.
+1. make sure you have a directory of secrets in yaml format that you want to inject
+1. generate an API key for your admin user in Jenkins
+1. `script/populate-secrets.sh --server <server, probably http://localhost:8080> --username <admin username> --secrets-dir <relative path from populate-secrets.sh to secrets directory>`
 > Jenkins checks out the local git repo to build the job, so changes must be committed locally for Jenkins to build
 > them.
 

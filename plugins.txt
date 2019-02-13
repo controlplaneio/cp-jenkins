@@ -2,7 +2,6 @@ ace-editor:latest
 ansicolor:latest
 antisamy-markup-formatter:latest
 apache-httpcomponents-client-4-api:latest
-artifactory:latest
 authentication-tokens:latest
 blueocean:latest
 bouncycastle-api:latest
@@ -84,7 +83,6 @@ run-selector:latest
 scm-api:latest
 script-security:latest
 sidebar-link:latest
-spotinst:latest
 ssh-agent:latest
 ssh-credentials:latest
 ssh-slaves:latest
