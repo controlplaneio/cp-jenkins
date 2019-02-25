@@ -112,12 +112,20 @@ Jenkins. These commits should be squashed or rebased onto another branch when co
   1. Iterate
   1. When complete, rebase changes onto another branch for commit or PR
 
-You can inject secrets automatically into your local Jenkins.
-1. make sure you have a directory of secrets in yaml format that you want to inject
-1. generate an API key for your admin user in Jenkins
-1. `script/populate-secrets.sh --server <server, probably http://localhost:8080> --username <admin username> --secrets-dir <relative path from populate-secrets.sh to secrets directory>`
 > Jenkins checks out the local git repo to build the job, so changes must be committed locally for Jenkins to build
 > them.
+
+### Secrets Management
+
+Secrets can be injected into a Jenkins instance via the API:
+
+1. Ensure a YAML file of secrets exists of the format demonstrated [here](script/tests/assets/MultiEnv/FirstEnviron.yaml)
+1. Generate an API key for your admin user via Jenkins' UI (People > Desired User > Configure)
+1. Run the populate secrets script, either via `make secrets`, or the script it calls:
+    ```
+    script/populate-secrets.sh --server <i.e. http://localhost:8080> --username <admin username> --secrets-dir <relative path from populate-secrets.sh to secrets directory>
+    ```
+1. Once the API key has been used, delete it from the Jenkins UI to prevent reuse
 
 # Migrating between hosts
 
@@ -127,7 +135,7 @@ You can inject secrets automatically into your local Jenkins.
   tar czvf mount-jenkins.tar.gz /mnt/jenkins_home/ /mnt/certs/
   ```
 1. Copy the file to the new host (either via ssh ForwardAgent [which should only be [enabled when required](https://heipei.github.io/2015/02/26/SSH-Agent-Forwarding-considered-harmful/) or bounced through a secure intermediate host/workstation)
-1. Untar the tarball into the same directories on the new host
+1. Un-tar the tarball into the same directories on the new host
 1. Run the Makefile from this repo on the new host
   ```
   make run-prod \

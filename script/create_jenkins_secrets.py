@@ -13,8 +13,8 @@ from os.path import join, basename
 
 warnings.filterwarnings("ignore")
 
-# logging.basicConfig(level=logging.DEBUG)
 logging.basicConfig(level=logging.INFO)
+# logging.basicConfig(level=logging.DEBUG)
 
 admin_user = ''
 api_token = ''
@@ -264,9 +264,10 @@ class Secrets(object):
         logging.debug(files)
 
         for this_file in files:
+            logging.debug(this_file)
             result = self.get_list(self.parse_yaml(this_file))
             environment_name = basename(this_file).replace('.yaml', '')
-            self.result[environment_name] = self.sort_creds(result)
+            self.result[environment_name] = self.sort_creds(result, this_file)
 
         logging.debug(self.result)
         return self.result
@@ -280,12 +281,15 @@ class Secrets(object):
 
         return all_files
 
-    def sort_creds(self, credentials):
+    def sort_creds(self, credentials, file_name):
         response = {}
 
         for cred in credentials:
             for key, value in cred.iteritems():
-                if isinstance(value, list):
+                if isinstance(value, list) and len(value) > 0:
+                    logging.debug("Found list: " + key)
+                    logging.debug("Found list length: %d" % len(value))
+
                     env_creds = self.list_to_dict(value)
 
                     if env_creds.get('username') is not None \
@@ -304,7 +308,7 @@ class Secrets(object):
                         response['sshuserpass'].append({key: env_creds})
 
                     else:
-                        raise 'Neither user or username key found'
+                        raise Exception('Wanted user or username key, neither found in `%s` of file `%s`' % (key, file_name))
                 else:
                     if response.get('secret_text') is None:
                         response['secret_text'] = []
