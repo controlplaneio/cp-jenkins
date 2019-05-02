@@ -35,9 +35,10 @@ ifneq ($(GIT_UNTRACKED_CHANGES),)
 endif
 
 CONTAINER_TAG ?= $(GIT_TAG)
+DOCKER_TAG_SEPARATOR := $(shell CONTAINER_TAG="$(CONTAINER_TAG)"; if [ "$${CONTAINER_TAG:0:7}" == "sha256:" ]; then echo '@'; else echo ':'; fi;)
 CONTAINER_TAG_LATEST := $(CONTAINER_TAG)
-CONTAINER_NAME := $(REGISTRY)/$(NAME):$(CONTAINER_TAG)
-CONTAINER_NAME_SLAVE := $(REGISTRY)/$(NAME)-slave:$(CONTAINER_TAG)
+CONTAINER_NAME := $(REGISTRY)/$(NAME)$(DOCKER_TAG_SEPARATOR)$(CONTAINER_TAG)
+CONTAINER_NAME_SLAVE := $(REGISTRY)/$(NAME)-slave$(DOCKER_TAG_SEPARATOR)$(CONTAINER_TAG)
 
 # if no untracked changes and tag is not dev, release `latest` tag
 ifeq ($(GIT_UNTRACKED_CHANGES),)
@@ -46,13 +47,14 @@ ifeq ($(GIT_UNTRACKED_CHANGES),)
 	endif
 endif
 
-CONTAINER_NAME_LATEST := $(REGISTRY)/$(NAME):$(CONTAINER_TAG_LATEST)
-CONTAINER_NAME_SLAVE_LATEST := $(REGISTRY)/$(NAME)-slave:$(CONTAINER_TAG_LATEST)
+CONTAINER_NAME_LATEST := $(REGISTRY)/$(NAME)$(DOCKER_TAG_SEPARATOR)$(CONTAINER_TAG_LATEST)
+CONTAINER_NAME_SLAVE_LATEST := $(REGISTRY)/$(NAME)-slave$(DOCKER_TAG_SEPARATOR)$(CONTAINER_TAG_LATEST)
 
 # ---
 
 $(info $$VIRTUAL_HOST is [${VIRTUAL_HOST}])
 $(info $$LETSENCRYPT_EMAIL is [${LETSENCRYPT_EMAIL}])
+$(info $$DOCKER_TAG_SEPARATOR is [${DOCKER_TAG_SEPARATOR}])
 $(info $$CONTAINER_NAME is [${CONTAINER_NAME}])
 $(info $$CONTAINER_NAME_LATEST is [${CONTAINER_NAME_LATEST}])
 $(info ---)
@@ -122,6 +124,12 @@ push: ## pushes a docker image
 	@echo "+ $@"
 	docker push "$(CONTAINER_NAME)"
 	docker push "$(CONTAINER_NAME_LATEST)"
+
+.PHONY: get-container-tag
+get-container-tag: ## get the container's tag
+	@echo "$(CONTAINER_NAME)"
+
+# ---
 
 .PHONY: mount-point
 mount-point: ## creates a mount point for the image volume
