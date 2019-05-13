@@ -273,6 +273,11 @@ run-prod-nginx: ## run nginx with TLS
 		--volumes-from nginx-proxy \
 		jrcs/letsencrypt-nginx-proxy-companion
 
+.PHONY: certificate-regenerate
+certificate-regenerate:
+	@echo "+ $@"
+	docker exec nginx-proxy-companion /app/force_renew
+
 .PHONY: export
 export: ## package jenkins up for transport
 	docker save "$(CONTAINER_NAME)" -o "$(CONTAINER_NAME)".tgz
