@@ -1,3 +1,5 @@
+#!/usr/bin/env groovy
+
 def getContainerTag() {
   if (env.GIT_COMMIT == "") {
     error "GIT_COMMIT value was empty at usage. "
@@ -7,6 +9,17 @@ def getContainerTag() {
 
 pipeline {
   agent none
+
+  post {
+    failure {
+      emailext (
+          subject: "cp-infra build failed:  '${env.BUILD_NUMBER}'",
+          body: "${currentBuild.rawBuild.getLog(100).join("\n")}",
+          to: "team@control-plane.io",
+          from: "jenkins@control-plane.io"
+          )
+    }
+  }
 
   environment {
     ENVIRONMENT = 'ops'
