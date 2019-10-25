@@ -13,7 +13,7 @@ pipeline {
   post {
     failure {
       emailext (
-          subject: "cp-infra build failed:  '${env.BUILD_NUMBER}'",
+          subject: "cp-jenkins build failed:  '${env.BUILD_NUMBER}'",
           body: "${currentBuild.rawBuild.getLog(100).join("\n")}",
           to: "team@control-plane.io",
           from: "jenkins@control-plane.io"
