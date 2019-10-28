@@ -12,7 +12,9 @@ pipeline {
 
   post {
     always {
-      step([$class: 'ClaimPublisher'])
+      agent {
+        step([$class: 'ClaimPublisher'])
+      }
     }
     failure {
       emailext (
