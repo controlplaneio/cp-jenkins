@@ -117,7 +117,7 @@ build-slave-with-cache: ## builds a Docker slave image, keeping the cache intact
 .PHONY: pull-base-image
 pull-base-image: ## pulls a Docker base image
 	@echo "+ $@"
-	grep FROM Dockerfile | awk '{print $$2}' | xargs -n 1 docker pull
+	grep ^FROM Dockerfile | awk '{print $$2}' | xargs -n 1 docker pull
 
 .PHONY: push
 push: ## pushes a docker image

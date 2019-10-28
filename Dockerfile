@@ -1,4 +1,5 @@
-FROM jenkins/jenkins:lts
+# FROM jenkins/jenkins:lts
+FROM jenkins/jenkins:2.184
 
 ARG FOOTER_URL="https://jenkins.io"
 ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false -Dhudson.footerURL=${FOOTER_URL} -Djava.util.logging=DEBUG" \
