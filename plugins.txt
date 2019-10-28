@@ -10,6 +10,7 @@ build-history-metrics:latest
 build-monitor-plugin:latest
 build-timeout:latest
 checkmarx:latest
+claim:latest
 cloudbees-folder:latest
 command-launcher:latest
 compress-buildlog:latest
