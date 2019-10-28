@@ -11,6 +11,9 @@ pipeline {
   agent none
 
   post {
+    always {
+      step([$class: 'ClaimPublisher'])
+    }
     failure {
       emailext (
           subject: "cp-jenkins build failed:  '${env.BUILD_NUMBER}'",
