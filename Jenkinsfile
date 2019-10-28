@@ -11,7 +11,7 @@ pipeline {
   agent none
 
   post {
-    always {
+    node {
       agent {
         step([$class: 'ClaimPublisher'])
       }
