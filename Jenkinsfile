@@ -12,7 +12,7 @@ pipeline {
 
   post {
     always {
-      node {
+      node("any") {
         step([$class: 'ClaimPublisher'])
       }
     }
