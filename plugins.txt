@@ -39,6 +39,7 @@ github-pr-coverage-status:latest
 github:latest
 global-build-stats:latest
 gradle:latest
+greenballs:latest
 groovy:latest
 handlebars:latest
 hashicorp-vault-plugin:latest
