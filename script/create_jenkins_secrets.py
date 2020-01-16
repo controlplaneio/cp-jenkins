@@ -13,8 +13,8 @@ from os.path import join, basename
 
 warnings.filterwarnings("ignore")
 
-logging.basicConfig(level=logging.INFO)
-# logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 admin_user = ''
 api_token = ''
@@ -290,7 +290,10 @@ class Secrets(object):
                     logging.debug("Found list: " + key)
                     logging.debug("Found list length: %d" % len(value))
 
-                    env_creds = self.list_to_dict(value)
+                    try:
+                        env_creds = self.list_to_dict(value)
+                    except:
+                        raise Exception('Malformed credentials block - could not parse list')
 
                     if env_creds.get('username') is not None \
                         and env_creds.get('password') is not None:
