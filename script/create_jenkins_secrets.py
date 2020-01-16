@@ -13,8 +13,8 @@ from os.path import join, basename
 
 warnings.filterwarnings("ignore")
 
-# logging.basicConfig(level=logging.INFO)
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
+# logging.basicConfig(level=logging.DEBUG)
 
 admin_user = ''
 api_token = ''
