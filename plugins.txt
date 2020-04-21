@@ -12,6 +12,7 @@ build-timeout:latest
 checkmarx:latest
 claim:latest
 cloudbees-folder:latest
+configuration-as-code:latest
 command-launcher:latest
 compress-buildlog:latest
 copyartifact:latest
