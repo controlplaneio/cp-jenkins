@@ -9,6 +9,7 @@ import requests
 import getpass
 import warnings
 from os import walk
+from os import path
 from os.path import join, basename
 
 warnings.filterwarnings("ignore")
@@ -257,6 +258,11 @@ def get_headers():
 class Secrets(object):
     def __init__(self, directory):
         self.result = {}
+        if not path.isdir(directory):
+            logging.error("Directory not found at {}. Try going down one level with `../`?".format(directory))
+            logging.error("  For example: ../../../2020/cp-secret/environments/")
+            sys.exit(1)
+
         self.directory = directory
 
     def get(self):
