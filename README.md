@@ -12,7 +12,7 @@ Opinionated YAML-driven Jenkins.
         githubProjectUrl('https://github.com/controlplaneio/jenkins-dsl')
     }
     ```
-    and  
+    and
     ```
     remote {
         url('git@github.com:controlplaneio/jenkins-dsl.git')
@@ -63,7 +63,7 @@ directory each invocation, and runs on `TEST_PORT` in the Makefile (default is `
 ## Configuration
 
 Once Jenkins is up:
-1. Credentials need to be added to clone repositories via SSH
+1. Credentials for the `ssh-key-jenkins-bot` user need to be added to clone repositories via SSH
 1. In-process script approval is required to allow the initial DSL scripts
 
 ## Local Workflow

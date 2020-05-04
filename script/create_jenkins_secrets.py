@@ -258,9 +258,14 @@ def get_headers():
 class Secrets(object):
     def __init__(self, directory):
         self.result = {}
+        import os
+        logging.info("Content of target directory {}:".format(directory))
+        logging.info(os.system('ls -l {}'.format(directory)))
+
         if not path.isdir(directory):
             logging.error("Directory not found at {}. Try going down one level with `../`?".format(directory))
             logging.error("  For example: ../../../2020/cp-secret/environments/")
+
             sys.exit(1)
 
         self.directory = directory
