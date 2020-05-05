@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -euxo pipefail
+set -Eeuxo pipefail
 
 # get gid of docker socket file
 DOCKER_SOCK_GID=$(ls -ng /var/run/docker.sock | cut -f3 -d' ')
@@ -20,4 +20,4 @@ fi
 sed -E '1s,(.*)[[:space:]]*$,\1x,g' -i /usr/local/bin/jenkins.sh
 
 # drop access to jenkins user and run jenkins entrypoint
-exec gosu jenkins /usr/local/bin/tini -- /usr/local/bin/jenkins.sh "$@"
+exec gosu jenkins:jenkins /usr/local/bin/jenkins.sh "$@"

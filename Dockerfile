@@ -24,6 +24,7 @@ RUN \
       jq \
       make \
       python-pip \
+      python3-pip \
       software-properties-common \
     \
     && ARCH="$(dpkg --print-architecture | awk -F- '{ print $NF }')" \
@@ -63,6 +64,12 @@ RUN \
   /usr/local/bin/install-plugins.sh < /usr/share/jenkins/ref/plugins.txt \
   \
   && [[ ! -f /usr/share/jenkins/ref/plugins/failed-plugins.txt ]]
+
+RUN pip3 install ansible && ansible --version && ansible-galaxy install dev-sec.os-hardening && \
+ printf -- "- hosts: 127.0.0.1\n  roles:\n    - dev-sec.os-hardening\n  vars:\n    - sysctl_config: []" \
+ | tee /tmp/harden &&  ansible-playbook /tmp/harden --skip-tags "packages" \
+ && pip3 uninstall --yes --quiet ansible \
+ && apt remove python3-pip
 
 COPY init.groovy.d /usr/share/jenkins/ref/init.groovy.d/
 COPY entrypoint.sh /entrypoint.sh
