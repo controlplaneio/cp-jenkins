@@ -1,7 +1,7 @@
 executors:
-  master: 5
+  master: 0
 
-jnlp_port: 5000
+jnlp_port: 50000
 
 set_master_kill_switch: true
 

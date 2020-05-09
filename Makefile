@@ -38,7 +38,7 @@ CONTAINER_TAG ?= $(GIT_TAG)
 DOCKER_TAG_SEPARATOR := $(shell CONTAINER_TAG="$(CONTAINER_TAG)"; if [ "$${CONTAINER_TAG:0:7}" == "sha256:" ]; then echo '@'; else echo ':'; fi;)
 CONTAINER_TAG_LATEST := $(CONTAINER_TAG)
 CONTAINER_NAME := $(REGISTRY)/$(NAME)$(DOCKER_TAG_SEPARATOR)$(CONTAINER_TAG)
-CONTAINER_NAME_SLAVE := $(REGISTRY)/$(NAME)-slave$(DOCKER_TAG_SEPARATOR)$(CONTAINER_TAG)
+CONTAINER_NAME_AGENT := $(REGISTRY)/$(NAME)-agent$(DOCKER_TAG_SEPARATOR)$(CONTAINER_TAG)
 
 # if no untracked changes and tag is not dev, release `latest` tag
 ifeq ($(GIT_UNTRACKED_CHANGES),)
@@ -48,7 +48,7 @@ ifeq ($(GIT_UNTRACKED_CHANGES),)
 endif
 
 CONTAINER_NAME_LATEST := $(REGISTRY)/$(NAME)$(DOCKER_TAG_SEPARATOR)$(CONTAINER_TAG_LATEST)
-CONTAINER_NAME_SLAVE_LATEST := $(REGISTRY)/$(NAME)-slave$(DOCKER_TAG_SEPARATOR)$(CONTAINER_TAG_LATEST)
+CONTAINER_NAME_AGENT_LATEST := $(REGISTRY)/$(NAME)-agent$(DOCKER_TAG_SEPARATOR)$(CONTAINER_TAG_LATEST)
 
 # ---
 
@@ -98,21 +98,21 @@ build-with-cache: ## builds a Docker image, keeping the cache intact
 		VIRTUAL_HOST=$${VIRTUAL_HOST} \
 		make build
 
-build-slave: pull-base-image ## builds a docker image for the slave
+build-agent: pull-base-image ## builds a docker image for the agent
 	@echo "+ $@"
 	docker build \
-		--tag "${CONTAINER_NAME_SLAVE}" \
+		--tag "${CONTAINER_NAME_AGENT}" \
 		--build-arg FOOTER_URL="$(VIRTUAL_HOST)" \
 		--build-arg CACHE_BUSTER="$(CACHE_BUSTER)" \
-		--file Dockerfile.slave .
+		--file Dockerfile.agent .
 
-.PHONY: build-slave-with-cache
-build-slave-with-cache: ## builds a Docker slave image, keeping the cache intact
+.PHONY: build-agent-with-cache
+build-agent-with-cache: ## builds a Docker agent image, keeping the cache intact
 	@echo "+ $@"
 	CACHE_BUSTER=KEEP_CACHE \
 		CONTAINER_NAME=$${CONTAINER_NAME} \
 		VIRTUAL_HOST=$${VIRTUAL_HOST} \
-		make build-slave
+		make build-agent
 
 .PHONY: pull-base-image
 pull-base-image: ## pulls a Docker base image
@@ -178,6 +178,26 @@ test-run: ## runs the last built docker image with ephemeral storage
 	cat "$(shell pwd)/setup-secret-example.yml" \
 				| docker exec -i jenkins-test sh -c "cat >/usr/share/jenkins/config/setup-secret-example.yml"
 
+.PHONY: run-agent-local
+run-agent-local:
+	AGENT_NAME ?= test-1
+	AGENT_SECRET ?= ""
+run-agent-local: ## runs the last built docker image with persistent storage
+	@echo "+ $@"
+	docker run \
+		--rm \
+		--group-add docker \
+		-p 8080:9090 \
+	    -e GITHUB_OAUTH=none \
+	    -e JENKINS_DSL_OVERRIDE=$(JENKINS_DSL_OVERRIDE) \
+	    -e JENKINS_LOCAL_JOB_OVERRIDE=$(JENKINS_LOCAL_JOB_OVERRIDE) \
+		--net host \
+		-v "$(JENKINS_TESTING_REPO_MOUNT_DIR):/mnt/test-repo" \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		--init \
+		$(CONTAINER_NAME_AGENT) \
+		-url http://localhost:8080 $(AGENT_SECRET) $(AGENT_NAME)
+
 .PHONY: run-local
 run-local: check-mount-points mount-point ## runs the last built docker image with persistent storage
 	@echo "+ $@"
@@ -189,14 +209,14 @@ run-local: check-mount-points mount-point ## runs the last built docker image wi
 	  -e GITHUB_OAUTH=none \
 	  -e JENKINS_DSL_OVERRIDE=$(JENKINS_DSL_OVERRIDE) \
 	  -e JENKINS_LOCAL_JOB_OVERRIDE=$(JENKINS_LOCAL_JOB_OVERRIDE) \
-		-p 8080:8080 \
-		-p 50000:50000 \
-		-v "$(shell pwd)/setup.yml":/usr/share/jenkins/setup.yml \
-		-v "$(shell pwd)/setup-secret.yml":/usr/share/jenkins/setup-secret.yml \
-		-v "$(JENKINS_HOME_MOUNT_DIR)":/var/jenkins_home \
-		-v "$(JENKINS_TESTING_REPO_MOUNT_DIR):/mnt/test-repo" \
-		-v /var/run/docker.sock:/var/run/docker.sock \
-		"$(CONTAINER_NAME)"
+	  -p 8080:8080 \
+	  -p 50000:50000 \
+	  -v "$(shell pwd)/setup.yml":/usr/share/jenkins/setup.yml \
+	  -v "$(shell pwd)/setup-secret.yml":/usr/share/jenkins/setup-secret.yml \
+	  -v "$(JENKINS_HOME_MOUNT_DIR)":/var/jenkins_home \
+	  -v "$(JENKINS_TESTING_REPO_MOUNT_DIR):/mnt/test-repo" \
+	  -v /var/run/docker.sock:/var/run/docker.sock \
+	  "$(CONTAINER_NAME)"
 
 .PHONY: run
 run: check-mount-points mount-point ## runs the last built docker image with persistent storage

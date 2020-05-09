@@ -1,0 +1,55 @@
+FROM jenkins/inbound-agent:latest
+
+ENV JENKINS_HOME=/home/jenkins/
+
+ENV GOSU_VERSION="1.10" \
+    TINI_VERSION="v0.16.1"
+
+USER root
+RUN \
+    apt-get update \
+    && apt-get install -y \
+      apt \
+      apt-transport-https \
+      bash \
+      ca-certificates \
+      curl \
+      gnupg2 \
+      jq \
+      make \
+      python-pip \
+      software-properties-common \
+    \
+    && ARCH="$(dpkg --print-architecture | awk -F- '{ print $NF }')" \
+    \
+    && curl -fsSL https://download.docker.com/linux/$(. /etc/os-release; echo "$ID")/gpg | apt-key add - \
+    && add-apt-repository \
+      "deb [arch=${ARCH}] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") \
+      $(lsb_release -cs) \
+      stable" \
+    && apt-get update \
+    && apt-get install -y \
+      docker-ce \
+    && adduser jenkins users \
+    && adduser jenkins docker \
+    \
+    && wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-${ARCH}" \
+    && chmod +x /usr/local/bin/gosu \
+    && gosu nobody true \
+    \
+    && wget -O /usr/local/bin/tini "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${ARCH}" \
+    && chmod +x /usr/local/bin/tini
+
+RUN \
+  mkdir -p \
+    "${JENKINS_HOME}/.ssh/" \
+    "${JENKINS_HOME}/config/" \
+  || true \
+  && chown jenkins:jenkins "${JENKINS_HOME}" -R \
+  && ssh-keyscan -H github.com gitlab.com bitbucket.org >> /etc/ssh/ssh_known_hosts
+
+ARG CACHE_BUSTER=KEEP_CACHE
+
+COPY entrypoint.sh /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]

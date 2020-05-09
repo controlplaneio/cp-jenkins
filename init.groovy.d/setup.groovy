@@ -82,7 +82,7 @@ def configure() {
 // setup master executors
   Thread.start {
     def JENKINS = Jenkins.getInstance()
-    int executors = env['JENKINS_EXECUTORS'] ?: config.executors.master.toInteger() ?: 2
+    int executors = env['JENKINS_EXECUTORS'] ?: config.executors.master.toInteger() < 0 ?: 2
     int current_executors = JENKINS.getNumExecutors()
     if (current_executors != executors) {
       JENKINS.setNumExecutors(executors)
@@ -289,7 +289,7 @@ def configure() {
       Thread.start {
         log('setting agent port for jnlp')
         def env = System.getenv()
-        int port = config.jnlp_port ?: env['JENKINS_SLAVE_AGENT_PORT'].toInteger() ?: 5001
+        int port = config.jnlp_port ?: env['JENKINS_SLAVE_AGENT_PORT'].toInteger() ?: 50001
         Jenkins.instance.setSlaveAgentPort(port)
         log('setting agent port for jnlp... done')
       }
