@@ -1,0 +1,134 @@
+ansicolor:latest
+workflow-aggregator:latest
+pipeline-maven:latest
+configuration-as-code-support:latest
+job-dsl:latest
+
+# ---
+
+docker-workflow:latest
+
+git:latest
+github-api:latest
+github-branch-source:latest
+github-oauth:latest
+github-organization-folder:latest
+github-pr-coverage-status:latest
+github:latest
+ssh-agent:latest
+email-ext:latest
+ws-cleanup:latest
+matrix-auth:latest
+
+# ace-editor:latest
+# ansicolor:latest
+# antisamy-markup-formatter:latest
+# apache-httpcomponents-client-4-api:latest
+# authentication-tokens:latest
+# blueocean:latest
+# bouncycastle-api:latest
+# branch-api:latest
+# build-history-metrics:latest
+# build-monitor-plugin:latest
+# build-timeout:latest
+# checkmarx:latest
+# claim:latest
+# cloudbees-folder:latest
+# configuration-as-code:latest
+# command-launcher:latest
+# compress-buildlog:latest
+# copyartifact:latest
+# credentials-binding:latest
+# credentials:latest
+# dashboard-view:latest
+# delivery-pipeline-plugin:latest
+# display-url-api:latest
+# docker-commons:latest
+# docker-workflow:latest
+# durable-task:latest
+# email-ext:latest
+# envinject:latest
+# external-monitor-job:latest
+# extra-columns:latest
+# favorite:latest
+# git-client:latest
+# git-server:latest
+# git:latest
+# github-api:latest
+# github-branch-source:latest
+# github-oauth:latest
+# github-organization-folder:latest
+# github-pr-coverage-status:latest
+# github:latest
+# global-build-stats:latest
+# gradle:latest
+# greenballs:latest
+# groovy:latest
+# handlebars:latest
+# hashicorp-vault-plugin:latest
+# heavy-job:latest
+# icon-shim:latest
+# ivy:latest
+# jackson2-api:latest
+# jdk-tool:latest
+# job-dsl:latest
+# jquery-detached:latest
+# jsch:latest
+# junit:latest
+# ldap:latest
+# lockable-resources:latest
+# mailer:latest
+# mapdb-api:latest
+# matrix-auth:latest
+# matrix-project:latest
+# maven-plugin:latest
+# metrics:latest
+# momentjs:latest
+# multiple-scms:latest
+# naginator:latest
+# nested-view:latest
+# pam-auth:latest
+# pipeline-github-lib:latest
+# pipeline-graph-analysis:latest
+# pipeline-input-step:latest
+# pipeline-milestone-step:latest
+# pipeline-model-api:latest
+# pipeline-model-declarative-agent:latest
+# pipeline-model-definition:latest
+# pipeline-model-extensions:latest
+# pipeline-rest-api:latest
+# pipeline-stage-step:latest
+# pipeline-stage-tags-metadata:latest
+# pipeline-stage-view:latest
+# pipeline-utility-steps:latest
+# plain-credentials:latest
+# progress-bar-column-plugin:latest
+# prometheus:latest
+# resource-disposer:latest
+# run-selector:latest
+# scm-api:latest
+# script-security:latest
+# sidebar-link:latest
+# ssh-agent:latest
+# ssh-credentials:latest
+# ssh-slaves:latest
+# structs:latest
+# subversion:latest
+# tap:latest
+# timestamper:latest
+# token-macro:latest
+# variant:latest
+# view-job-filters:latest
+# windows-slaves:latest
+# workflow-aggregator:latest
+# workflow-api:latest
+# workflow-basic-steps:latest
+# workflow-cps-global-lib:latest
+# workflow-cps:latest
+# workflow-durable-task-step:latest
+# workflow-job:latest
+# workflow-multibranch:latest
+# workflow-scm-step:latest
+# workflow-step-api:latest
+# workflow-support:latest
+# ws-cleanup:latest

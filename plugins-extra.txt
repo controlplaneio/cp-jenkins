@@ -1,5 +1,6 @@
-ace-editor:latest
 ansicolor:latest
+
+ace-editor:latest
 antisamy-markup-formatter:latest
 apache-httpcomponents-client-4-api:latest
 authentication-tokens:latest

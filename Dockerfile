@@ -55,23 +55,34 @@ RUN \
   && chown jenkins:jenkins "${JENKINS_HOME}" -R \
   && ssh-keyscan -H github.com gitlab.com bitbucket.org >> /etc/ssh/ssh_known_hosts
 
-ARG CACHE_BUSTER=KEEP_CACHE
-
-SHELL ["/bin/bash", "-c"]
-COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
-RUN \
-  ATTEMPTS=2 \
-  /usr/local/bin/install-plugins.sh < /usr/share/jenkins/ref/plugins.txt \
-  \
-  && [[ ! -f /usr/share/jenkins/ref/plugins/failed-plugins.txt ]]
-
 RUN pip3 install ansible && ansible --version && ansible-galaxy install dev-sec.os-hardening && \
  printf -- "- hosts: 127.0.0.1\n  roles:\n    - dev-sec.os-hardening\n  vars:\n    - sysctl_config: []" \
  | tee /tmp/harden &&  ansible-playbook /tmp/harden --skip-tags "packages" \
- && pip3 uninstall --yes --quiet ansible \
- && apt remove python3-pip
+ && pip3 uninstall --yes --quiet ansible
 
-COPY init.groovy.d /usr/share/jenkins/ref/init.groovy.d/
+ARG CACHE_BUSTER=KEEP_CACHE
+
+# install plugins
+SHELL ["/bin/bash", "-c"]
+COPY plugins-base.txt /usr/share/jenkins/ref/
+RUN \
+  ATTEMPTS=2 \
+  /usr/local/bin/install-plugins.sh < /usr/share/jenkins/ref/plugins-base.txt \
+  \
+  && [[ ! -f /usr/share/jenkins/ref/plugins/failed-plugins.txt ]]
+
+
+COPY plugins-extra.txt /usr/share/jenkins/ref/
+RUN \
+  ATTEMPTS=2 \
+  /usr/local/bin/install-plugins.sh < /usr/share/jenkins/ref/plugins-extra.txt \
+  \
+  && [[ ! -f /usr/share/jenkins/ref/plugins/failed-plugins.txt ]]
+
+#COPY init.groovy.d /usr/share/jenkins/ref/init.groovy.d/
 COPY entrypoint.sh /entrypoint.sh
+
+ENV CASC_JENKINS_CONFIG=/casc_config/cp-jenkins-export.yaml
+COPY casc_config/ /casc_config/
 
 ENTRYPOINT ["/entrypoint.sh"]

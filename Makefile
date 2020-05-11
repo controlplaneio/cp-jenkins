@@ -18,6 +18,7 @@ JENKINS_TESTING_REPO_MOUNT_DIR ?= $${HOME}/src/
 
 JENKINS_LOCAL_JOB_OVERRIDE ?= ""
 JENKINS_DSL_OVERRIDE ?= ""
+JENKINS_SECRET_PROPERTIES ?= ""
 
 SHELL := /bin/bash
 BUILD_DATE := $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
@@ -163,6 +164,7 @@ test-run: ## runs the last built docker image with ephemeral storage
 		-p $(TEST_HTTP_PORT):8080 \
 		-p 50090:50000 \
 		--tmpfs /usr/share/jenkins/config/ \
+		-v "$(JENKINS_SECRET_PROPERTIES)":"/run/secrets/secrets.properties" \
 		-v "$(JENKINS_TESTING_REPO_MOUNT_DIR)":/mnt/test-repo \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		"$(CONTAINER_NAME)"

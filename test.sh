@@ -8,11 +8,10 @@
 ## Usage: %SCRIPT_NAME% [options] filename
 ##
 ## Options:
-##   -d, --description [string]  Description
-##   -t, --type [bash]           Template type to create
-##   --debug                     More debug
+##   --port [num]     Port number to test
+##   --debug          More debug
 ##
-##   -h --help                   Display this message
+##   -h --help        Display this message
 ##
 
 # exit on error or pipe failure
@@ -174,18 +173,10 @@ parse_arguments() {
         DEBUG=1
         set -xe
         ;;
-      -d | --description)
+      --port)
         shift
         not_empty_or_usage "${1:-}"
-        DESCRIPTION="${1}"
-        ;;
-      -t | --type)
-        shift
-        not_empty_or_usage "${1:-}"
-        case $1 in
-          bash) FILETYPE=bash ;;
-          *) usage "Template type '${1}' not recognised" ;;
-        esac
+        PORT="${1}"
         ;;
       --)
         shift
