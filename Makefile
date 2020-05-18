@@ -16,9 +16,10 @@ JENKINS_HOME_MOUNT_DIR ?= /mnt/jenkins_home/
 JENKINS_TESTING_REPO_MOUNT_DIR ?= $${HOME}/src/
 # e.g. "file:///mnt/test-repo/some-repo"
 
-JENKINS_LOCAL_JOB_OVERRIDE ?= ""
-JENKINS_DSL_OVERRIDE ?= ""
-JENKINS_SECRET_PROPERTIES ?= ""
+JENKINS_LOCAL_JOB_OVERRIDE ?=
+JENKINS_DSL_OVERRIDE ?=
+JENKINS_BOOTSTRAP_SECRETS_DIR ?=
+YAML_BOOTSTRAP_SECRETS_DIR ?=
 
 SHELL := /bin/bash
 BUILD_DATE := $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
@@ -149,24 +150,26 @@ test-run: ## runs the last built docker image with ephemeral storage
 		| xargs --no-run-if-empty docker kill; \
 	fi
 	rm -f /tmp/jenkins-test.cid || true
-	echo "Target port is localhost:$(TEST_HTTP_PORT)"
+	echo "Target port is http://localhost:$(TEST_HTTP_PORT)"
 
 	docker run \
-		--name jenkins-test \
-		-d \
-		--group-add docker \
-		--cidfile /tmp/jenkins-test.cid \
-		-e GITHUB_OAUTH=test \
-		-e JENKINS_DSL_OVERRIDE=$(JENKINS_DSL_OVERRIDE) \
-		-e JENKINS_LOCAL_JOB_OVERRIDE=$(JENKINS_LOCAL_JOB_OVERRIDE) \
-		-e JENKINS_SETUP_YAML="/usr/share/jenkins/config/setup.yml" \
-		-e JENKINS_SECRET_YAML="/usr/share/jenkins/config/setup-secret-example.yml" \
-		-p $(TEST_HTTP_PORT):8080 \
+		--name "jenkins-test" \
+		--group-add "docker" \
+		--cidfile "/tmp/jenkins-test.cid" \
+		--detach \
+		\
+		-e GITHUB_OAUTH="test" \
+		-e JENKINS_DSL_OVERRIDE="$(JENKINS_DSL_OVERRIDE)" \
+		-e JENKINS_LOCAL_JOB_OVERRIDE="$(JENKINS_LOCAL_JOB_OVERRIDE)" \
+		-p "$(TEST_HTTP_PORT):8080" \
 		-p 50090:50000 \
-		--tmpfs /usr/share/jenkins/config/ \
-		-v "$(JENKINS_SECRET_PROPERTIES)":"/run/secrets/secrets.properties" \
-		-v "$(JENKINS_TESTING_REPO_MOUNT_DIR)":/mnt/test-repo \
-		-v /var/run/docker.sock:/var/run/docker.sock \
+		\
+		--tmpfs "/usr/share/jenkins/config/" \
+		--tmpfs "/tmp/:rw,nosuid,nodev,relatime" \
+		-v "$(JENKINS_BOOTSTRAP_SECRETS_DIR)":"/run/secrets/" \
+		-v "$(JENKINS_TESTING_REPO_MOUNT_DIR)":"/mnt/test-repo" \
+		-v "/var/run/docker.sock:/var/run/docker.sock" \
+		\
 		"$(CONTAINER_NAME)"
 
 	COUNT=0; \
@@ -180,17 +183,24 @@ test-run: ## runs the last built docker image with ephemeral storage
 	cat "$(shell pwd)/setup-secret-example.yml" \
 				| docker exec -i jenkins-test sh -c "cat >/usr/share/jenkins/config/setup-secret-example.yml"
 
+	COUNT=0; \
+	until timeout --foreground 1 ncat -z localhost "${TEST_HTTP_PORT}"; do \
+			sleep 0.5; \
+			if [[ $$((COUNT++)) -gt 10 ]]; then echo "Container did not open http://localhost:${TEST_HTTP_PORT}"; exit 1; fi; \
+	done;
+
+
 .PHONY: run-local
 run-local: check-mount-points mount-point ## runs the last built docker image with persistent storage
 	@echo "+ $@"
 	docker rm --force jenkins || true
 	docker run \
-	  --name jenkins \
-	  --rm \
-	  --group-add docker \
-	  -e GITHUB_OAUTH=none \
-	  -e JENKINS_DSL_OVERRIDE=$(JENKINS_DSL_OVERRIDE) \
-	  -e JENKINS_LOCAL_JOB_OVERRIDE=$(JENKINS_LOCAL_JOB_OVERRIDE) \
+		--name jenkins \
+		--rm \
+		--group-add docker \
+		-e GITHUB_OAUTH=none \
+		-e JENKINS_DSL_OVERRIDE=$(JENKINS_DSL_OVERRIDE) \
+		-e JENKINS_LOCAL_JOB_OVERRIDE=$(JENKINS_LOCAL_JOB_OVERRIDE) \
 		-p 8080:8080 \
 		-p 50000:50000 \
 		-v "$(shell pwd)/setup.yml":/usr/share/jenkins/setup.yml \
@@ -290,11 +300,32 @@ export: ## package jenkins up for transport
 
 .PHONY: test
 test: ## build and test image
-	./test.sh
+	./test/test.sh
+
+#TODO(ajm) move into script
+.PHONY: mount-secrets
+mount-secrets: ## mount secrets
+	set -Eex; \
+	command -v json-to-properties || { echo "Install json-to-properties: npm i -g git+https://git@github.com/sublimino/json-to-properties" >&2; exit 1; }; \
+	YAML_BOOTSTRAP_SECRETS_DIR="$(YAML_BOOTSTRAP_SECRETS_DIR)"; \
+	YAML_BOOTSTRAP_SECRETS_ENV="$(YAML_BOOTSTRAP_SECRETS_ENV)"; \
+	YAML_BOOTSTRAP_SECRETS_ENV="$${YAML_BOOTSTRAP_SECRETS_ENV:-ops}"; \
+	JENKINS_BOOTSTRAP_SECRETS_DIR="$(JENKINS_BOOTSTRAP_SECRETS_DIR)"; \
+	\
+	[[ -d "$${YAML_BOOTSTRAP_SECRETS_DIR}" ]]; \
+	mkdir -p "$${JENKINS_BOOTSTRAP_SECRETS_DIR}"; \
+	cat "$${YAML_BOOTSTRAP_SECRETS_DIR}/$${YAML_BOOTSTRAP_SECRETS_ENV}.yaml" \
+		| faq -o json ". | to_entries | .[] | .key |= \"$${YAML_BOOTSTRAP_SECRETS_ENV}_\\(.)\" | [.] | from_entries" \
+		| jq -s add | tee "$${JENKINS_BOOTSTRAP_SECRETS_DIR}/secrets.json"; \
+	cd "$${JENKINS_BOOTSTRAP_SECRETS_DIR}"; \
+	ls -lasp; \
+	json-to-properties; \
+	rm secrets.json; \
+	ls -lasp;
 
 .PHONY: clean
 clean: ## remove temporary files from test-run
-	sudo rm /tmp/user/1000/tmp.*jenkins-test -rf
+	rm /tmp/jenkins-test.cid -rf
 
 .PHONY: help
 help: ## parse jobs and descriptions from this Makefile
