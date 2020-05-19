@@ -82,6 +82,11 @@ RUN \
 #COPY init.groovy.d /usr/share/jenkins/ref/init.groovy.d/
 COPY entrypoint.sh /entrypoint.sh
 
+RUN curl -Lo /usr/local/bin/goss \
+    https://github.com/aelsabbahy/goss/releases/download/v0.3.7/goss-linux-amd64 \
+  && chmod +x /usr/local/bin/goss \
+  && goss help
+
 ENV CASC_JENKINS_CONFIG=/casc_config/cp-jenkins-export.yaml
 COPY casc_config/ /casc_config/
 

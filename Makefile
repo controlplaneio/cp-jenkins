@@ -302,6 +302,15 @@ export: ## package jenkins up for transport
 test: ## build and test image
 	./test/test.sh
 
+.PHONY: test-goss
+test-goss: ## build an image and run goss in a jenkins-test container
+	docker exec -i jenkins-test \
+		goss \
+			-g - \
+			validate \
+			--format documentation \
+			< test/goss.yaml
+
 #TODO(ajm) move into script
 .PHONY: mount-secrets
 mount-secrets: ## mount secrets
