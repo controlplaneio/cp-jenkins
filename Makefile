@@ -18,7 +18,7 @@ JENKINS_TESTING_REPO_MOUNT_DIR ?= $${HOME}/src/
 
 JENKINS_LOCAL_JOB_OVERRIDE ?=
 JENKINS_DSL_OVERRIDE ?=
-JENKINS_BOOTSTRAP_SECRETS_DIR ?=
+JENKINS_BOOTSTRAP_SECRETS_TMP_DIR ?=
 YAML_BOOTSTRAP_SECRETS_DIR ?=
 
 SHELL := /bin/bash
@@ -166,7 +166,7 @@ test-run: ## runs the last built docker image with ephemeral storage
 		\
 		--tmpfs "/usr/share/jenkins/config/" \
 		--tmpfs "/tmp/:rw,nosuid,nodev,relatime" \
-		-v "$(JENKINS_BOOTSTRAP_SECRETS_DIR)":"/run/secrets/" \
+		-v "$(JENKINS_BOOTSTRAP_SECRETS_TMP_DIR)":"/run/secrets/" \
 		-v "$(JENKINS_TESTING_REPO_MOUNT_DIR)":"/mnt/test-repo" \
 		-v "/var/run/docker.sock:/var/run/docker.sock" \
 		\
@@ -310,14 +310,14 @@ mount-secrets: ## mount secrets
 	YAML_BOOTSTRAP_SECRETS_DIR="$(YAML_BOOTSTRAP_SECRETS_DIR)"; \
 	YAML_BOOTSTRAP_SECRETS_ENV="$(YAML_BOOTSTRAP_SECRETS_ENV)"; \
 	YAML_BOOTSTRAP_SECRETS_ENV="$${YAML_BOOTSTRAP_SECRETS_ENV:-ops}"; \
-	JENKINS_BOOTSTRAP_SECRETS_DIR="$(JENKINS_BOOTSTRAP_SECRETS_DIR)"; \
+	JENKINS_BOOTSTRAP_SECRETS_TMP_DIR="$(JENKINS_BOOTSTRAP_SECRETS_TMP_DIR)"; \
 	\
 	[[ -d "$${YAML_BOOTSTRAP_SECRETS_DIR}" ]]; \
-	mkdir -p "$${JENKINS_BOOTSTRAP_SECRETS_DIR}"; \
+	mkdir -p "$${JENKINS_BOOTSTRAP_SECRETS_TMP_DIR}"; \
 	cat "$${YAML_BOOTSTRAP_SECRETS_DIR}/$${YAML_BOOTSTRAP_SECRETS_ENV}.yaml" \
 		| faq -o json ". | to_entries | .[] | .key |= \"$${YAML_BOOTSTRAP_SECRETS_ENV}_\\(.)\" | [.] | from_entries" \
-		| jq -s add | tee "$${JENKINS_BOOTSTRAP_SECRETS_DIR}/secrets.json"; \
-	cd "$${JENKINS_BOOTSTRAP_SECRETS_DIR}"; \
+		| jq -s add | tee "$${JENKINS_BOOTSTRAP_SECRETS_TMP_DIR}/secrets.json"; \
+	cd "$${JENKINS_BOOTSTRAP_SECRETS_TMP_DIR}"; \
 	ls -lasp; \
 	json-to-properties; \
 	rm secrets.json; \
