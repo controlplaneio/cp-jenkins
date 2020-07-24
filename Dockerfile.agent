@@ -49,3 +49,7 @@ RUN \
   && ssh-keyscan -H github.com gitlab.com bitbucket.org >> /etc/ssh/ssh_known_hosts
 
 ARG CACHE_BUSTER=KEEP_CACHE
+
+COPY entrypoint.sh /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]

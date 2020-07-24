@@ -179,13 +179,24 @@ test-run: ## runs the last built docker image with ephemeral storage
 				| docker exec -i jenkins-test sh -c "cat >/usr/share/jenkins/config/setup-secret-example.yml"
 
 .PHONY: run-agent-local
+run-agent-local:
+	AGENT_NAME ?= test-1
+	AGENT_SECRET ?= ""
 run-agent-local: ## runs the last built docker image with persistent storage
+	@echo "+ $@"
 	docker run \
+		--rm \
+		--group-add docker \
 		-p 8080:9090 \
+	    -e GITHUB_OAUTH=none \
+	    -e JENKINS_DSL_OVERRIDE=$(JENKINS_DSL_OVERRIDE) \
+	    -e JENKINS_LOCAL_JOB_OVERRIDE=$(JENKINS_LOCAL_JOB_OVERRIDE) \
 		--net host \
+		-v "$(JENKINS_TESTING_REPO_MOUNT_DIR):/mnt/test-repo" \
+		-v /var/run/docker.sock:/var/run/docker.sock \
 		--init \
 		$(CONTAINER_NAME_AGENT) \
-		-url http://localhost:8080 "" test-1
+		-url http://localhost:8080 $(AGENT_SECRET) $(AGENT_NAME)
 
 .PHONY: run-local
 run-local: check-mount-points mount-point ## runs the last built docker image with persistent storage
@@ -198,14 +209,14 @@ run-local: check-mount-points mount-point ## runs the last built docker image wi
 	  -e GITHUB_OAUTH=none \
 	  -e JENKINS_DSL_OVERRIDE=$(JENKINS_DSL_OVERRIDE) \
 	  -e JENKINS_LOCAL_JOB_OVERRIDE=$(JENKINS_LOCAL_JOB_OVERRIDE) \
-		-p 8080:8080 \
-		-p 50000:50000 \
-		-v "$(shell pwd)/setup.yml":/usr/share/jenkins/setup.yml \
-		-v "$(shell pwd)/setup-secret.yml":/usr/share/jenkins/setup-secret.yml \
-		-v "$(JENKINS_HOME_MOUNT_DIR)":/var/jenkins_home \
-		-v "$(JENKINS_TESTING_REPO_MOUNT_DIR):/mnt/test-repo" \
-		-v /var/run/docker.sock:/var/run/docker.sock \
-		"$(CONTAINER_NAME)"
+	  -p 8080:8080 \
+	  -p 50000:50000 \
+	  -v "$(shell pwd)/setup.yml":/usr/share/jenkins/setup.yml \
+	  -v "$(shell pwd)/setup-secret.yml":/usr/share/jenkins/setup-secret.yml \
+	  -v "$(JENKINS_HOME_MOUNT_DIR)":/var/jenkins_home \
+	  -v "$(JENKINS_TESTING_REPO_MOUNT_DIR):/mnt/test-repo" \
+	  -v /var/run/docker.sock:/var/run/docker.sock \
+	  "$(CONTAINER_NAME)"
 
 .PHONY: run
 run: check-mount-points mount-point ## runs the last built docker image with persistent storage

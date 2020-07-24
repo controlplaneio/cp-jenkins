@@ -1,5 +1,5 @@
 executors:
-  master: 0
+  master: 5
 
 jnlp_port: 50000
 
