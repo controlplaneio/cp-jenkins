@@ -1,7 +1,7 @@
 ansicolor:latest
 workflow-aggregator:latest
 pipeline-maven:latest
-configuration-as-code-support:latest
+configuration-as-code:latest
 job-dsl:latest
 
 # ---
