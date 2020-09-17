@@ -192,6 +192,7 @@ run-agent-local: ## runs the last built docker image with persistent storage
 	    -e JENKINS_DSL_OVERRIDE=$(JENKINS_DSL_OVERRIDE) \
 	    -e JENKINS_LOCAL_JOB_OVERRIDE=$(JENKINS_LOCAL_JOB_OVERRIDE) \
 		--net host \
+		--volumes-from jenkins \
 		-v "$(JENKINS_TESTING_REPO_MOUNT_DIR):/mnt/test-repo" \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		--init \

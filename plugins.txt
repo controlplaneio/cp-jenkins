@@ -46,6 +46,7 @@ handlebars:latest
 hashicorp-vault-plugin:latest
 heavy-job:latest
 icon-shim:latest
+in-toto:latest
 ivy:latest
 jackson2-api:latest
 jdk-tool:latest
