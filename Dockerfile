@@ -25,6 +25,7 @@ RUN \
       make \
       python3-pip \
       software-properties-common \
+      wget \
     \
     && ARCH="$(dpkg --print-architecture | awk -F- '{ print $NF }')" \
     \
