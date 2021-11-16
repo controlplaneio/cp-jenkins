@@ -23,7 +23,7 @@ RUN \
       gnupg2 \
       jq \
       make \
-      python-pip \
+      python3-pip \
       software-properties-common \
     \
     && ARCH="$(dpkg --print-architecture | awk -F- '{ print $NF }')" \
